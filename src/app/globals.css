@@ -1,0 +1,117 @@
+@import "tailwindcss";
+@import "@fontsource/inter/400.css";
+@import "@fontsource/inter/300.css";
+@import "@fontsource/inter/500.css";
+@import "@fontsource/inter/600.css";
+@import "@fontsource/plus-jakarta-sans/500.css";
+@import "@fontsource/plus-jakarta-sans/600.css";
+@import "@fontsource/plus-jakarta-sans/700.css";
+@import "@fontsource/plus-jakarta-sans/800.css";
+
+:root {
+  --background: #0e0e0e;
+  --foreground: #ffffff;
+  --surface: #0e0e0e;
+  --surface-container-low: #131313;
+  --surface-container: #1a1a1a;
+  --surface-container-high: #20201f;
+  --surface-container-highest: #262626;
+  --primary: #ff8f70;
+  --primary-container: #ff7852;
+  --on-primary-container: #480d00;
+  --tertiary: #bebeff;
+  --on-surface-variant: #adaaaa;
+  --outline-ghost: rgba(72, 72, 71, 0.2);
+}
+
+@theme inline {
+  --color-background: var(--surface);
+  --color-surface: var(--surface);
+  --color-surface-container-low: var(--surface-container-low);
+  --color-surface-container: var(--surface-container);
+  --color-surface-container-high: var(--surface-container-high);
+  --color-surface-container-highest: var(--surface-container-highest);
+  --color-primary: var(--primary);
+  --color-primary-container: var(--primary-container);
+  --color-on-primary-container: var(--on-primary-container);
+  --color-tertiary: var(--tertiary);
+  --color-on-surface: var(--foreground);
+  --color-on-surface-variant: var(--on-surface-variant);
+  --font-sans: "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-headline: "Plus Jakarta Sans", "Inter", "Segoe UI", sans-serif;
+  --font-mono: "Consolas", "Courier New", monospace;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 14px;
+}
+
+@media (min-width: 1024px) {
+  html {
+    font-size: 12px;
+  }
+}
+
+@media (min-width: 1600px) {
+  html {
+    font-size: 13px;
+  }
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--surface);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+.font-headline {
+  font-family: var(--font-headline);
+}
+
+.kinetic-gradient {
+  background:
+    radial-gradient(circle at 20% 30%, rgba(255, 143, 112, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(190, 190, 255, 0.03) 0%, transparent 50%);
+}
+
+.glass-panel {
+  background: rgba(26, 26, 26, 0.6);
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.ui-page-padding {
+  padding: clamp(0.9rem, 0.9vw, 1.25rem);
+}
+
+.ui-form-max {
+  width: min(100%, 28rem);
+}
+
+.ui-page-shell {
+  margin-inline: auto;
+  width: 100%;
+  max-width: 86rem;
+  padding-top: 0.25rem;
+  padding-bottom: 4rem;
+}
+
+.ui-page-shell--narrow {
+  max-width: 78rem;
+}
+
+.ui-page-shell--medium {
+  max-width: 84rem;
+}
