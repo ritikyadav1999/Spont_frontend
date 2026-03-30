@@ -90,8 +90,8 @@ export function EventDetailsPage({ token }: { token: string }) {
   const eventQuery = useEventByToken(token);
   const event = eventQuery.data;
   const isPastEvent = Boolean(event && (event.status === "COMPLETED" || new Date(event.endTime).getTime() < currentTime));
-  const approvedQuery = useApprovedParticipants(token, isAuthenticated);
-  const pendingQuery = usePendingParticipants(token, isAuthenticated && !isPastEvent);
+  const approvedQuery = useApprovedParticipants(token);
+  const pendingQuery = usePendingParticipants(token, !isPastEvent);
   const requestJoinMutation = useRequestJoinEvent(token);
   const participantDecisionMutation = useParticipantDecision(token);
   const [joinState, setJoinState] = useState<"idle" | "joined" | "requested">("idle");
@@ -166,7 +166,7 @@ export function EventDetailsPage({ token }: { token: string }) {
 
   const handleJoin = () => {
     if (!isAuthenticated) {
-      router.push(`/events/${token}/request-join`);
+      router.push("/login");
       return;
     }
 
@@ -201,7 +201,9 @@ export function EventDetailsPage({ token }: { token: string }) {
   };
 
   const joinButtonLabel =
-    joinState === "joined"
+    !isAuthenticated
+      ? "Sign In to Join"
+      : joinState === "joined"
       ? "Joined"
       : joinState === "requested"
         ? "Request Sent"
@@ -297,6 +299,12 @@ export function EventDetailsPage({ token }: { token: string }) {
         </div>
       </header>
 
+      {!isAuthenticated && !isPastEvent ? (
+        <div className="mb-6 rounded-2xl border border-white/8 bg-surface-container px-4 py-3 text-sm text-on-surface-variant">
+          Sign in or create an account to request your spot at this event and see the latest attendee updates.
+        </div>
+      ) : null}
+
       {isAuthenticated && !canJoin && !isPastEvent ? (
         <div className="mb-6 rounded-2xl bg-surface-container px-4 py-3 text-sm text-on-surface-variant">
           Complete your profile with <span className="text-on-surface">name, gender, and phone</span> before joining an event.
@@ -368,11 +376,7 @@ export function EventDetailsPage({ token }: { token: string }) {
               </span>
             </h2>
 
-            {!isAuthenticated ? (
-              <div className="rounded-2xl bg-surface-container p-4 text-sm text-on-surface-variant">
-                Approved participant details are visible after authentication.
-              </div>
-            ) : approvedQuery.isLoading ? (
+            {approvedQuery.isLoading ? (
               <div className="h-44 animate-pulse rounded-2xl bg-surface-container" />
             ) : confirmedMembers.length ? (
               <div className="overflow-hidden rounded-[1.7rem] bg-surface-container">
@@ -449,11 +453,7 @@ export function EventDetailsPage({ token }: { token: string }) {
                 ) : null}
               </div>
 
-              {!isAuthenticated ? (
-                <div className="rounded-2xl bg-surface-container p-4 text-sm text-on-surface-variant">
-                  Sign in or submit a join request to view and manage pending requests.
-                </div>
-              ) : pendingQuery.isLoading ? (
+              {pendingQuery.isLoading ? (
                 <div className="h-44 animate-pulse rounded-2xl bg-surface-container" />
               ) : pendingParticipants.length ? (
                 <div className="space-y-3">

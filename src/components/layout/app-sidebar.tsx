@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { ArrowRight, X, ChevronsLeft, ChevronsRight, Compass, ChevronUp, LogOut, Bell, Plus, UserRound, CalendarRange } from "lucide-react";
+import { ArrowRight, X, ChevronsLeft, ChevronsRight, Compass, ChevronUp, LogOut, Bell, Plus, UserRound, CalendarRange, MessageSquare } from "lucide-react";
 import { useAuth, useLogout } from "@/features/auth/hooks/use-auth";
 import { useNotifications } from "@/features/notifications/hooks/use-notifications";
 import { cn } from "@/lib/utils/cn";
@@ -13,9 +13,13 @@ const navigationItems = [
   { href: "/my-events", label: "My Events", icon: CalendarRange },
   { href: "/notifications", label: "Notifications", icon: Bell },
   { href: "/host", label: "Host Event", icon: Plus },
+  { href: "/contact-feedback", label: "Contact & Feedback", icon: MessageSquare },
 ];
 
-const guestNavigationItems = [{ href: "/discover", label: "Discover", icon: Compass }];
+const guestNavigationItems = [
+  { href: "/discover", label: "Discover", icon: Compass },
+  { href: "/contact-feedback", label: "Contact & Feedback", icon: MessageSquare },
+];
 
 type AppSidebarProps = {
   mobile?: boolean;

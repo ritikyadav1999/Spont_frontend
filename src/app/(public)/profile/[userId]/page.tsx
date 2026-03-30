@@ -1,3 +1,4 @@
+import { PublicBrowseShell } from "@/components/layout/public-browse-shell";
 import { ProfilePage } from "@/features/profile/components/profile-page";
 
 type PublicProfileRouteProps = {
@@ -9,5 +10,9 @@ type PublicProfileRouteProps = {
 export default async function PublicProfileRoute({ params }: PublicProfileRouteProps) {
   const { userId } = await params;
 
-  return <ProfilePage userId={userId} />;
+  return (
+    <PublicBrowseShell>
+      <ProfilePage userId={userId} />
+    </PublicBrowseShell>
+  );
 }
