@@ -89,8 +89,3 @@ export interface PaginatedData<T> {
 
 export type PaginatedEventData = PaginatedData<EventItem>;
 export type PaginatedPastEventData = PaginatedData<PastEventSummary>;
-
-export interface MyEventsResponse {
-  hosting: PaginatedEventData;
-  attending: PaginatedEventData;
-}

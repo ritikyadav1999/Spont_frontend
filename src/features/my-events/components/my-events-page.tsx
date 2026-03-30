@@ -10,7 +10,12 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { useRef, useState } from "react";
-import { useApprovedParticipants, useMyEvents, useMyPastEvents } from "@/features/events/hooks/use-events";
+import {
+  useApprovedParticipants,
+  useMyAttendingEvents,
+  useMyHostingEvents,
+  useMyPastEvents,
+} from "@/features/events/hooks/use-events";
 import type { EventItem, PastEventSummary } from "@/features/events/types/event.types";
 import { EventPosterCard } from "@/features/my-events/components/event-poster-card";
 import { getApiErrorMessage } from "@/lib/utils/api-response";
@@ -690,32 +695,40 @@ function MemoryLaneSection({
 
 export function MyEventsPage() {
   const [coHostModal, setCoHostModal] = useState<{ token: string; title: string } | null>(null);
-  const myEventsQuery = useMyEvents();
+  const hostingEventsQuery = useMyHostingEvents();
+  const attendingEventsQuery = useMyAttendingEvents();
   const pastEventsQuery = useMyPastEvents();
 
-  const hostingEvents = myEventsQuery.data?.hosting.data ?? [];
-  const attendingEvents = myEventsQuery.data?.attending.data ?? [];
+  const hostingEvents = hostingEventsQuery.data?.content ?? [];
+  const attendingEvents = attendingEventsQuery.data?.content ?? [];
   const pastEvents = pastEventsQuery.data?.pages.flatMap((page) => page.data ?? []) ?? [];
   const upcomingCount = hostingEvents.length + attendingEvents.length;
+  const showHeroSkeleton =
+    hostingEventsQuery.isLoading &&
+    attendingEventsQuery.isLoading &&
+    pastEventsQuery.isLoading &&
+    !hostingEvents.length &&
+    !attendingEvents.length &&
+    !pastEvents.length;
 
   return (
     <div className="ui-page-shell ui-page-shell--medium pb-20">
-      {myEventsQuery.isLoading && pastEventsQuery.isLoading ? (
+      {showHeroSkeleton ? (
         <HeroSkeleton />
       ) : (
         <PageHero archiveCount={pastEvents.length} upcomingCount={upcomingCount} />
       )}
 
       <HostingSection
-        error={myEventsQuery.error}
+        error={hostingEventsQuery.error}
         events={hostingEvents}
-        loading={myEventsQuery.isLoading}
+        loading={hostingEventsQuery.isLoading}
         onShowCoHosts={(event) => setCoHostModal({ token: event.inviteToken, title: getEventTitle(event) })}
       />
       <AttendingSection
-        error={myEventsQuery.error}
+        error={attendingEventsQuery.error}
         events={attendingEvents}
-        loading={myEventsQuery.isLoading}
+        loading={attendingEventsQuery.isLoading}
         onShowCoHosts={(event) => setCoHostModal({ token: event.inviteToken, title: getEventTitle(event) })}
       />
       <MemoryLaneSection

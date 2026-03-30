@@ -3,18 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import {
-  ArrowRight,
-  ChevronsLeft,
-  ChevronsRight,
-  Compass,
-  ChevronUp,
-  LogOut,
-  Bell,
-  Plus,
-  UserRound,
-  CalendarRange,
-} from "lucide-react";
+import { ArrowRight, X, ChevronsLeft, ChevronsRight, Compass, ChevronUp, LogOut, Bell, Plus, UserRound, CalendarRange } from "lucide-react";
 import { useAuth, useLogout } from "@/features/auth/hooks/use-auth";
 import { useNotifications } from "@/features/notifications/hooks/use-notifications";
 import { cn } from "@/lib/utils/cn";
@@ -30,8 +19,10 @@ const guestNavigationItems = [{ href: "/discover", label: "Discover", icon: Comp
 
 type AppSidebarProps = {
   mobile?: boolean;
+  isOpen?: boolean;
   collapsed?: boolean;
   onToggleCollapse?: () => void;
+  onClose?: () => void;
 };
 
 const brandSuffix = "aneous";
@@ -80,7 +71,13 @@ function AnimatedBrand() {
   );
 }
 
-export function AppSidebar({ mobile = false, collapsed = false, onToggleCollapse }: AppSidebarProps) {
+export function AppSidebar({
+  mobile = false,
+  isOpen = false,
+  collapsed = false,
+  onToggleCollapse,
+  onClose,
+}: AppSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, isAuthenticated } = useAuth();
@@ -101,12 +98,15 @@ export function AppSidebar({ mobile = false, collapsed = false, onToggleCollapse
 
   const handleProfile = () => {
     setIsProfileOpen(false);
+    onClose?.();
     router.push("/profile");
   };
 
-  const handleHostEvent = () => {
-    router.push(isAuthenticated ? "/host" : "/register");
+  const handleLogoutAndClose = () => {
+    onClose?.();
+    handleLogout();
   };
+
   const visibleNavigationItems = isAuthenticated ? navigationItems : guestNavigationItems;
 
   const navBody = (
@@ -115,19 +115,19 @@ export function AppSidebar({ mobile = false, collapsed = false, onToggleCollapse
         <div className={cn(collapsed && !mobile && "sr-only")}>
           <AnimatedBrand />
         </div>
-        {mobile && isAuthenticated ? (
+        {mobile ? (
           <button
-            className="rounded-full bg-primary-container px-4 py-2 text-sm font-bold text-on-primary-container transition-transform hover:scale-[1.02]"
-            onClick={handleHostEvent}
+            aria-label="Close menu"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-surface-container-high text-on-surface transition-colors hover:bg-surface-container-highest"
+            onClick={onClose}
             type="button"
           >
-            <Plus className="mr-1 inline h-4 w-4" />
-            Host
+            <X className="h-4 w-4" />
           </button>
         ) : null}
       </div>
 
-      <nav className={cn("flex", mobile ? "gap-2 overflow-x-auto pb-2" : "flex-1 flex-col gap-1.5")}>
+      <nav className={cn("flex", mobile ? "flex-col gap-1.5 pb-2" : "flex-1 flex-col gap-1.5")}>
         {visibleNavigationItems.map((item) => {
           const Icon = item.icon;
           const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
@@ -137,11 +137,16 @@ export function AppSidebar({ mobile = false, collapsed = false, onToggleCollapse
               ? "bg-surface-container text-primary"
               : "text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface",
             collapsed && !mobile && "h-12 justify-center px-0",
-            mobile && "min-w-fit whitespace-nowrap",
+            mobile && "w-full",
           );
 
           return (
-            <Link className={className} href={item.href} key={item.href}>
+            <Link
+              className={className}
+              href={item.href}
+              key={item.href}
+              onClick={mobile ? onClose : undefined}
+            >
               <Icon className={cn(collapsed && !mobile ? "h-5 w-5" : "h-4 w-4", isActive && "fill-primary/15")} />
               {collapsed && !mobile ? null : <span className={cn(isActive && "font-bold")}>{item.label}</span>}
               {isAuthenticated && item.href === "/notifications" && unreadNotificationsCount > 0 ? (
@@ -162,22 +167,43 @@ export function AppSidebar({ mobile = false, collapsed = false, onToggleCollapse
 
       {mobile ? (
         !isAuthenticated ? (
-          <div className="mt-4 grid grid-cols-2 gap-2">
+          <div className="mt-auto grid grid-cols-2 gap-2 pt-4">
             <Link
               className="inline-flex items-center justify-center rounded-full bg-surface-container-high px-4 py-2.5 text-sm font-semibold text-on-surface transition-colors hover:bg-surface-container-highest"
               href="/login"
+              onClick={onClose}
             >
               Login
             </Link>
             <Link
               className="inline-flex items-center justify-center gap-1.5 rounded-full bg-primary-container px-4 py-2.5 text-sm font-bold text-on-primary-container transition-transform hover:scale-[1.02]"
               href="/register"
+              onClick={onClose}
             >
               Sign Up
               <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
-        ) : null
+        ) : (
+          <div className="mt-auto space-y-2 pt-4">
+            <button
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-surface-container-high px-3 py-2.5 text-sm font-semibold text-on-surface-variant transition-colors hover:bg-surface-container-highest hover:text-on-surface"
+              onClick={handleProfile}
+              type="button"
+            >
+              <UserRound className="h-4 w-4" />
+              Profile
+            </button>
+            <button
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-surface-container-high px-3 py-2.5 text-sm font-semibold text-on-surface-variant transition-colors hover:bg-surface-container-highest hover:text-on-surface"
+              onClick={handleLogoutAndClose}
+              type="button"
+            >
+              <LogOut className="h-4 w-4" />
+              {logoutMutation.isPending ? "Signing out..." : "Logout"}
+            </button>
+          </div>
+        )
       ) : (
         <div className="mt-auto">
           {isAuthenticated ? (
@@ -275,7 +301,26 @@ export function AppSidebar({ mobile = false, collapsed = false, onToggleCollapse
   );
 
   if (mobile) {
-    return <div className="rounded-[1.5rem] bg-surface-container-low p-4 lg:hidden">{navBody}</div>;
+    return (
+      <div
+        aria-hidden={!isOpen}
+        className={cn(
+          "fixed inset-0 z-50 bg-black/55 transition-opacity duration-300 lg:hidden",
+          isOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0",
+        )}
+        onClick={onClose}
+      >
+        <div
+          className={cn(
+            "flex h-full w-[min(86vw,22rem)] flex-col bg-surface-container-low p-4 shadow-[0_24px_70px_-30px_rgba(0,0,0,0.95)] transition-transform duration-300",
+            isOpen ? "translate-x-0" : "-translate-x-full",
+          )}
+          onClick={(event) => event.stopPropagation()}
+        >
+          {navBody}
+        </div>
+      </div>
+    );
   }
 
   return (

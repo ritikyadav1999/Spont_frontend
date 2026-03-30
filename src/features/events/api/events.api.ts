@@ -9,9 +9,7 @@ import type {
   EventParticipant,
   JoinEventPayload,
   JoinEventResponse,
-  MyEventsResponse,
   PaginatedData,
-  PaginatedEventData,
   PaginatedPastEventData,
   PastEventSummary,
 } from "@/features/events/types/event.types";
@@ -119,13 +117,27 @@ export const eventsApi = {
     return unwrapApiResponse(response.data);
   },
 
-  async myEvents(hostingPage = 0, attendingPage = 0): Promise<MyEventsResponse> {
-    const response = await apiClient.get<ApiEnvelope<MyEventsResponse> | MyEventsResponse>(API_ROUTES.events.myEvents, {
-      params: {
-        hostingPage,
-        attendingPage,
+  async myHostingEvents(page = 0): Promise<EventListResponse> {
+    const response = await apiClient.get<ApiEnvelope<EventListResponse> | EventListResponse>(
+      API_ROUTES.events.myHostingEvents,
+      {
+        params: {
+          page,
+        },
       },
-    });
+    );
+    return unwrapApiResponse(response.data);
+  },
+
+  async myAttendingEvents(page = 0): Promise<EventListResponse> {
+    const response = await apiClient.get<ApiEnvelope<EventListResponse> | EventListResponse>(
+      API_ROUTES.events.myAttendingEvents,
+      {
+        params: {
+          page,
+        },
+      },
+    );
     return unwrapApiResponse(response.data);
   },
 

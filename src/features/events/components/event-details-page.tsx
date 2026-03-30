@@ -54,14 +54,13 @@ const formatDateRange = (start: string, end: string) => {
   return `${date} • ${startTime} - ${endTime}`;
 };
 
-const timeAgo = (value: string | null) => {
+const timeAgo = (value: string | null, currentTime: number) => {
   if (!value) {
     return "Approved recently";
   }
 
   const joinedAt = new Date(value).getTime();
-  const now = Date.now();
-  const diff = Math.max(0, now - joinedAt);
+  const diff = Math.max(0, currentTime - joinedAt);
   const hours = Math.floor(diff / (1000 * 60 * 60));
 
   if (hours < 1) {
@@ -87,9 +86,10 @@ const getInitials = (name: string) =>
 export function EventDetailsPage({ token }: { token: string }) {
   const router = useRouter();
   const { user, isAuthenticated } = useAuth();
+  const [currentTime] = useState(() => Date.now());
   const eventQuery = useEventByToken(token);
   const event = eventQuery.data;
-  const isPastEvent = Boolean(event && (event.status === "COMPLETED" || new Date(event.endTime).getTime() < Date.now()));
+  const isPastEvent = Boolean(event && (event.status === "COMPLETED" || new Date(event.endTime).getTime() < currentTime));
   const approvedQuery = useApprovedParticipants(token, isAuthenticated);
   const pendingQuery = usePendingParticipants(token, isAuthenticated && !isPastEvent);
   const requestJoinMutation = useRequestJoinEvent(token);
@@ -395,7 +395,7 @@ export function EventDetailsPage({ token }: { token: string }) {
                           </div>
                           <div className="min-w-0">
                             <p className="truncate text-sm font-bold text-on-surface">{participant.name}</p>
-                            <p className="text-xs text-on-surface-variant">{timeAgo(participant.joinedAt)}</p>
+                            <p className="text-xs text-on-surface-variant">{timeAgo(participant.joinedAt, currentTime)}</p>
                           </div>
                         </div>
                         <span className="inline-flex w-fit rounded-full bg-tertiary/15 px-2.5 py-1 text-[0.6rem] font-bold uppercase tracking-[0.14em] text-tertiary">

@@ -1,16 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { Bookmark, CalendarDays, Plus, Search, SlidersHorizontal } from "lucide-react";
+import { Bookmark, CalendarDays, Search } from "lucide-react";
 import { useMemo } from "react";
 import { AppPageHeader } from "@/components/layout/app-page-header";
-import { useAuth } from "@/features/auth/hooks/use-auth";
 import { useEvents } from "@/features/events/hooks/use-events";
 import type { EventItem } from "@/features/events/types/event.types";
 import { getApiErrorMessage } from "@/lib/utils/api-response";
 import { cn } from "@/lib/utils/cn";
-
-const filterItems = ["All Events", "Music", "Tech", "Nightlife", "Wellness"];
 
 const posterThemes = [
   "from-[#180c23] via-[#5a2d7d] to-[#09090c]",
@@ -176,7 +173,6 @@ function EventCard({ event, index }: { event: EventItem; index: number }) {
 }
 
 export function DiscoverPage() {
-  const { isAuthenticated } = useAuth();
   const eventsQuery = useEvents();
 
   const events = useMemo(() => eventsQuery.data?.content ?? [], [eventsQuery.data]);
@@ -202,38 +198,15 @@ export function DiscoverPage() {
         }
       />
 
-      <div className="mb-8 flex flex-col gap-4 lg:mb-10 lg:flex-row lg:items-center">
-          <div className="relative flex-1">
-            <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-on-surface-variant" />
-            <input
-              className="w-full rounded-xl bg-surface-container px-12 py-3.5 text-[0.95rem] text-on-surface placeholder:text-on-surface-variant/55 focus:ring-2 focus:ring-primary/30 focus:outline-none"
-              placeholder="Search events, creators, or vibes..."
-              type="text"
-            />
-          </div>
-
-          <div className="flex items-center gap-3 overflow-x-auto pb-1">
-            {filterItems.map((filter, index) => (
-              <button
-                className={cn(
-                  "whitespace-nowrap rounded-full px-5 py-2.5 text-[0.82rem] font-medium transition-all",
-                  index === 0
-                    ? "bg-primary-container font-bold text-on-primary-container hover:scale-[1.03]"
-                    : "bg-surface-container text-on-surface hover:bg-surface-container-high",
-                )}
-                key={filter}
-                type="button"
-              >
-                {filter}
-              </button>
-            ))}
-            <button
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-surface-container text-on-surface transition-colors hover:bg-surface-container-high"
-              type="button"
-            >
-              <SlidersHorizontal className="h-4 w-4" />
-            </button>
-          </div>
+      <div className="mb-8 lg:mb-10">
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-on-surface-variant" />
+          <input
+            className="w-full rounded-xl bg-surface-container px-12 py-3.5 text-[0.95rem] text-on-surface placeholder:text-on-surface-variant/55 focus:ring-2 focus:ring-primary/30 focus:outline-none"
+            placeholder="Search events, creators, or vibes..."
+            type="text"
+          />
+        </div>
       </div>
 
       {eventsQuery.isLoading ? (
@@ -270,14 +243,6 @@ export function DiscoverPage() {
         </>
       ) : null}
 
-      {isAuthenticated ? (
-        <button
-          className="fixed bottom-6 right-6 z-40 flex h-16 w-16 items-center justify-center rounded-full bg-primary text-on-primary-container shadow-[0_24px_60px_-24px_rgba(255,143,112,0.65)] transition-transform hover:scale-110 active:scale-95 lg:bottom-10 lg:right-10"
-          type="button"
-        >
-          <Plus className="h-7 w-7" />
-        </button>
-      ) : null}
     </div>
   );
 }
