@@ -9,4 +9,9 @@ export const hostEventApi = {
     const response = await apiClient.post<ApiEnvelope<unknown> | unknown>(API_ROUTES.events.create, payload);
     return unwrapApiResponse(response.data);
   },
+
+  async update(token: string, payload: CreateEventPayload) {
+    const response = await apiClient.put<ApiEnvelope<string> | string>(API_ROUTES.events.edit(token), payload);
+    return unwrapApiResponse(response.data);
+  },
 };

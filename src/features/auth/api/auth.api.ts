@@ -17,6 +17,7 @@ type LoginResponsePayload = {
   email?: string;
   phone?: string;
   gender?: "MALE" | "FEMALE";
+  userId?: string;
 };
 
 const normalizeLoginResponse = (
@@ -30,6 +31,7 @@ const normalizeLoginResponse = (
   }
 
   const user: AuthUser = {
+    id: data.userId,
     name: data.name,
     email: data.email,
     phone: data.phone,

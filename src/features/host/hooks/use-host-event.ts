@@ -7,3 +7,8 @@ export const useCreateEvent = () =>
   useMutation({
     mutationFn: hostEventApi.create,
   });
+
+export const useUpdateEvent = (token: string) =>
+  useMutation({
+    mutationFn: (payload: Parameters<typeof hostEventApi.update>[1]) => hostEventApi.update(token, payload),
+  });

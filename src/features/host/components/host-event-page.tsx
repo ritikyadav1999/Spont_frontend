@@ -2,13 +2,15 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CloudUpload, Image as ImageIcon, Rocket, Search, Sparkles, TimerReset } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { AppPageHeader } from "@/components/layout/app-page-header";
-import { useCreateEvent } from "@/features/host/hooks/use-host-event";
+import { useCreateEvent, useUpdateEvent } from "@/features/host/hooks/use-host-event";
 import { hostEventSchema, type HostEventSchema } from "@/features/host/schemas/host-event.schema";
 import type { CreateEventPayload, LocationSearchResult } from "@/features/host/types/host-event.types";
+import type { EventItem } from "@/features/events/types/event.types";
+import { toast } from "@/lib/toast/toast-store";
 import { cn } from "@/lib/utils/cn";
 import { getApiErrorMessage } from "@/lib/utils/api-response";
 
@@ -26,6 +28,19 @@ const CAPACITY_MIN = 1;
 const CAPACITY_MAX = 2000;
 
 const toIsoString = (date: string, time: string) => new Date(`${date}T${time}`).toISOString();
+const toInputDate = (value: string) => new Date(value).toISOString().slice(0, 10);
+const toInputTime = (value: string) =>
+  new Intl.DateTimeFormat("en-CA", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).format(new Date(value));
+
+type HostEventPageProps = {
+  mode?: "create" | "edit";
+  token?: string;
+  initialEvent?: EventItem | null;
+};
 
 async function searchLocations(query: string): Promise<LocationSearchResult[]> {
   const response = await fetch(
@@ -70,9 +85,10 @@ function SectionCard({
   );
 }
 
-export function HostEventPage() {
+export function HostEventPage({ mode = "create", token, initialEvent = null }: HostEventPageProps) {
   const router = useRouter();
   const createEventMutation = useCreateEvent();
+  const updateEventMutation = useUpdateEvent(token ?? "");
   const [coverFileName, setCoverFileName] = useState<string | null>(null);
   const [searchResults, setSearchResults] = useState<LocationSearchResult[]>([]);
   const [isSearchingLocation, setIsSearchingLocation] = useState(false);
@@ -83,6 +99,7 @@ export function HostEventPage() {
     setValue,
     watch,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm<HostEventSchema>({
     resolver: zodResolver(hostEventSchema),
@@ -103,6 +120,29 @@ export function HostEventPage() {
       status: "SCHEDULED",
     },
   });
+
+  useEffect(() => {
+    if (!initialEvent) {
+      return;
+    }
+
+    reset({
+      title: initialEvent.title,
+      description: initialEvent.description,
+      startDate: toInputDate(initialEvent.startTime),
+      startTime: toInputTime(initialEvent.startTime),
+      endDate: toInputDate(initialEvent.endTime),
+      endTime: toInputTime(initialEvent.endTime),
+      locationQuery: initialEvent.locationName,
+      locationName: initialEvent.locationName,
+      latitude: initialEvent.latitude,
+      longitude: initialEvent.longitude,
+      maxParticipants: initialEvent.maxParticipants,
+      joinMode: initialEvent.joinMode,
+      visibility: initialEvent.visibility,
+      status: initialEvent.status,
+    });
+  }, [initialEvent, reset]);
 
   const maxParticipants = watch("maxParticipants");
   const selectedLocation = watch("locationName");
@@ -171,18 +211,44 @@ export function HostEventPage() {
       maxParticipants: values.maxParticipants,
     };
 
+    if (mode === "edit" && token) {
+      updateEventMutation.mutate(payload, {
+        onSuccess: () => {
+          toast.success("Event details updated successfully.");
+          router.push(`/events/${token}`);
+        },
+      });
+      return;
+    }
+
     createEventMutation.mutate(payload, {
       onSuccess: () => {
+        toast.success("Event published successfully.");
         router.push("/discover");
       },
     });
   };
 
+  const activeMutation = mode === "edit" ? updateEventMutation : createEventMutation;
+  const pageTitle = mode === "edit" ? "Edit Event Details" : "Host Experience";
+  const pageDescription =
+    mode === "edit"
+      ? "Update your event details, timing, access settings, and location before the next wave of guests arrives."
+      : "Design a moment. Fill out the details below to broadcast your spontaneous event to the community.";
+  const submitLabel =
+    mode === "edit"
+      ? activeMutation.isPending
+        ? "Saving Changes..."
+        : "Save Event Changes"
+      : activeMutation.isPending
+        ? "Publishing..."
+        : "Publish Experience";
+
   return (
     <div className="ui-page-shell ui-page-shell--narrow pb-20">
       <AppPageHeader
-        description="Design a moment. Fill out the details below to broadcast your spontaneous event to the community."
-        title="Host Experience"
+        description={pageDescription}
+        title={pageTitle}
       />
 
       <form className="space-y-6 pb-8" onSubmit={handleSubmit(onSubmit)}>
@@ -444,18 +510,18 @@ export function HostEventPage() {
           </div>
         </SectionCard>
 
-        {createEventMutation.isError ? (
+        {activeMutation.isError ? (
           <p className="rounded-2xl bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
-            {getApiErrorMessage(createEventMutation.error)}
+            {getApiErrorMessage(activeMutation.error)}
           </p>
         ) : null}
 
         <button
           className="flex w-full items-center justify-center gap-3 rounded-full bg-primary-container px-6 py-5 font-headline text-lg font-extrabold text-on-primary-container transition-transform hover:scale-[1.01] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
-          disabled={createEventMutation.isPending}
+          disabled={activeMutation.isPending}
           type="submit"
         >
-          <span>{createEventMutation.isPending ? "Publishing..." : "Publish Experience"}</span>
+          <span>{submitLabel}</span>
           <Rocket className="h-5 w-5" />
         </button>
       </form>

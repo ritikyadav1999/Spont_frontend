@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowUpRight, CalendarDays, Share2, Users } from "lucide-react";
+import { ArrowUpRight, CalendarDays, PencilLine, Share2, Users } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useAuth } from "@/features/auth/hooks/use-auth";
 import {
@@ -14,12 +14,6 @@ import {
 } from "@/features/events/hooks/use-events";
 import type { EventParticipant, EventParticipantDecision } from "@/features/events/types/event.types";
 import { getApiErrorMessage } from "@/lib/utils/api-response";
-
-const heroImages = [
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuDAuZsz1fHPRiWLfqu-qOs1HBfDrjFpi_W4yCHzcG43ztM8D9xvYk0V0X46q9ySBVnCsmDg4HlxvWKzSF5A--ImvFir753D1e54rKGWsR-nRZ7eXwfJdCKEPpQgLO4xt6Uct168UbqFhfPIOur6sxiaKEPsX3RZ6RytvfomZhgHzIg0nX4v2EBeb4U-m78Vqwe-eKkPEoDrKYOdOe3crnGO_QFuiA9v5RhSTonvEyE4Qu34bHEHX5Q25LPiqXyV0G7mBR-bfIvFwr0-",
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuC7B9SV77BVxojgfSAzAeIKzM28qHQ0T_XLk2KZgiqBDX7E98ZIbQk4q9sHXsd8YTbrGHFKPgmx6WX8yPjCKAcQACYc9ys3IyfFMsnxoj4VQJ5y9BOiIYOek6Nuzoxw3DjxUXyYg6-M9HDiJHyWKRh6B5Haahh_jqtWSPUI4IlRfc2IYerCKCDNP8XMBXxTCI0Ov8hSQu69ANSyz4y-ypZ1ibD7kv2dMS3TACRjnYiypgGY50VDA9llgaqkEpSq5NQ0imNM7vDPy6-N",
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuA1OsDM4MJjvCthRTQ5ufxb2gA0aalRiymZw8NXyTppBcB4e6oh5TbIJWwqTv3MFtdn_HEX7VrpgqH_TSOYoKMBjlpAt9xN57HfoWrkfFVmyoC-Rhi9v5J3ujQB-mthEzfJz4pnJbzSH6aZpAUk7rJoloQ71OkrexOrEfCeV_2dA-LRAw-Uz8-ZgtMgDg2U4KrtD73vg4JHKE-G2cS41Fth4D32F7973vqmYD1WrlSwhj9-SB7vds5nVfk7hoKQDipRzpuKdSw1IYwT",
-];
 
 const formatDateLabel = (value: string) =>
   new Intl.DateTimeFormat("en-US", {
@@ -83,9 +77,29 @@ const getInitials = (name: string) =>
     .map((part) => part.charAt(0).toUpperCase())
     .join("");
 
+const decodeJwtSubject = (accessToken?: string | null) => {
+  if (!accessToken) {
+    return null;
+  }
+
+  const [, payload] = accessToken.split(".");
+  if (!payload) {
+    return null;
+  }
+
+  try {
+    const normalizedPayload = payload.replace(/-/g, "+").replace(/_/g, "/");
+    const paddedPayload = normalizedPayload.padEnd(Math.ceil(normalizedPayload.length / 4) * 4, "=");
+    const decodedPayload = JSON.parse(window.atob(paddedPayload)) as { sub?: string };
+    return decodedPayload.sub ?? null;
+  } catch {
+    return null;
+  }
+};
+
 export function EventDetailsPage({ token }: { token: string }) {
   const router = useRouter();
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, tokens } = useAuth();
   const [currentTime] = useState(() => Date.now());
   const eventQuery = useEventByToken(token);
   const event = eventQuery.data;
@@ -115,38 +129,38 @@ export function EventDetailsPage({ token }: { token: string }) {
     [approvedParticipants],
   );
 
-  const normalizedUserName = user?.name?.trim().toLowerCase();
-  const normalizedCreatorName = event?.creator.name?.trim().toLowerCase();
+  const currentUserId = user?.id ?? decodeJwtSubject(tokens?.accessToken);
+  const isApprovedParticipant = Boolean(
+    currentUserId && approvedParticipants.some((participant) => participant.userId === currentUserId),
+  );
+  const isPendingParticipant = Boolean(
+    currentUserId && pendingParticipants.some((participant) => participant.userId === currentUserId),
+  );
   const isHostView = Boolean(
-    (user?.id && event?.creator.userId && user.id === event.creator.userId) ||
-      (!user?.id && normalizedUserName && normalizedCreatorName && normalizedUserName === normalizedCreatorName),
+    currentUserId &&
+      ((event?.creator.userId && currentUserId === event.creator.userId) ||
+        approvedParticipants.some((participant) => participant.userId === currentUserId && participant.role === "HOST")),
   );
   const isCoHostView = Boolean(
-    approvedParticipants.some((participant) => {
-      const isCoHostRole = participant.role === "CO_HOST" || participant.role === "COHOST";
-      if (!isCoHostRole) {
-        return false;
-      }
-
-      const participantName = participant.name?.trim().toLowerCase();
-      return (user?.id && participant.userId && user.id === participant.userId) || (!user?.id && normalizedUserName === participantName);
-    }),
+    currentUserId &&
+      approvedParticipants.some(
+        (participant) =>
+          participant.userId === currentUserId && (participant.role === "CO_HOST" || participant.role === "COHOST"),
+      ),
   );
   const canModeratePending = (isHostView || isCoHostView) && event?.status === "SCHEDULED" && !isPastEvent;
   const canModerateApproved = canModeratePending;
   const canJoin = Boolean(user?.name && user?.gender && user?.phone);
+  const shouldShowEditButton = !isPastEvent && isHostView;
+  const shouldShowJoinButton =
+    !isPastEvent &&
+    !shouldShowEditButton &&
+    !isApprovedParticipant &&
+    !isPendingParticipant &&
+    joinState === "idle";
   const confirmedCount = confirmedMembers.length + 1;
   const maxParticipants = event?.maxParticipants ?? 1;
   const capacityPercent = Math.min(100, Math.round((confirmedCount / maxParticipants) * 100));
-
-  const heroImage = useMemo(() => {
-    if (!event?.eventId) {
-      return heroImages[0];
-    }
-
-    const hash = event.eventId.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    return heroImages[hash % heroImages.length];
-  }, [event?.eventId]);
 
   const mapUrl = useMemo(() => {
     if (!event) {
@@ -203,13 +217,9 @@ export function EventDetailsPage({ token }: { token: string }) {
   const joinButtonLabel =
     !isAuthenticated
       ? "Sign In to Join"
-      : joinState === "joined"
-      ? "Joined"
-      : joinState === "requested"
-        ? "Request Sent"
-        : event?.joinMode === "APPROVAL_REQUIRED"
-          ? "Join Request"
-          : "Join Event";
+      : event?.joinMode === "APPROVAL_REQUIRED"
+        ? "Join Request"
+        : "Join Event";
 
   const handleShare = async () => {
     if (!event) {
@@ -277,15 +287,24 @@ export function EventDetailsPage({ token }: { token: string }) {
             </div>
           </div>
           <div className="flex flex-wrap gap-3">
-            {!isPastEvent ? (
+            {shouldShowJoinButton ? (
               <button
                 className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-bold text-on-primary-container transition-transform hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-60"
-                disabled={(isAuthenticated && !canJoin) || requestJoinMutation.isPending || joinState !== "idle"}
+                disabled={(isAuthenticated && !canJoin) || requestJoinMutation.isPending}
                 onClick={handleJoin}
                 type="button"
               >
                 {requestJoinMutation.isPending ? "Submitting..." : joinButtonLabel}
               </button>
+            ) : null}
+            {shouldShowEditButton ? (
+              <Link
+                className="inline-flex items-center gap-2 rounded-full bg-surface-container-high px-5 py-3 text-sm font-semibold text-on-surface transition-colors hover:bg-surface-container-highest"
+                href={`/events/${token}/edit`}
+              >
+                <PencilLine className="h-4 w-4" />
+                Edit Event
+              </Link>
             ) : null}
             <button
               className="inline-flex items-center gap-2 rounded-full bg-surface-container-high px-5 py-3 text-sm font-semibold text-on-surface transition-colors hover:bg-surface-container-highest"
@@ -305,7 +324,19 @@ export function EventDetailsPage({ token }: { token: string }) {
         </div>
       ) : null}
 
-      {isAuthenticated && !canJoin && !isPastEvent ? (
+      {isAuthenticated && isPendingParticipant && !isPastEvent ? (
+        <div className="mb-6 rounded-2xl bg-surface-container px-4 py-3 text-sm text-on-surface-variant">
+          Your join request is pending approval from the host.
+        </div>
+      ) : null}
+
+      {isAuthenticated && isApprovedParticipant && !isHostView && !isCoHostView && !isPastEvent ? (
+        <div className="mb-6 rounded-2xl bg-surface-container px-4 py-3 text-sm text-on-surface-variant">
+          You are already on the guest list for this event.
+        </div>
+      ) : null}
+
+      {isAuthenticated && shouldShowJoinButton && !canJoin && !isPastEvent ? (
         <div className="mb-6 rounded-2xl bg-surface-container px-4 py-3 text-sm text-on-surface-variant">
           Complete your profile with <span className="text-on-surface">name, gender, and phone</span> before joining an event.
         </div>
@@ -314,8 +345,7 @@ export function EventDetailsPage({ token }: { token: string }) {
       <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_20rem] 2xl:grid-cols-[minmax(0,1fr)_22rem]">
         <div className="space-y-8">
           <section className="relative h-[23rem] overflow-hidden rounded-[2rem] bg-surface-container">
-            <img alt={event.title} className="h-full w-full object-cover" src={heroImage} />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/20 to-transparent" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgba(255,143,112,0.14),transparent_20%),radial-gradient(circle_at_78%_24%,rgba(123,134,255,0.12),transparent_18%),radial-gradient(circle_at_58%_76%,rgba(255,255,255,0.05),transparent_28%),linear-gradient(180deg,rgba(255,255,255,0.02)_0%,rgba(255,255,255,0)_38%,rgba(0,0,0,0.2)_100%)]" />
             <div className="absolute bottom-5 left-5 flex items-center gap-2">
               <span className="rounded-full bg-primary/22 px-3 py-1 text-[0.62rem] font-bold uppercase tracking-[0.18em] text-primary">
                 {event.joinMode === "APPROVAL_REQUIRED" ? "Approval Required" : "Open Entry"}

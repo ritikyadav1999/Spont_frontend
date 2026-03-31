@@ -21,13 +21,6 @@ import { EventPosterCard } from "@/features/my-events/components/event-poster-ca
 import { getApiErrorMessage } from "@/lib/utils/api-response";
 import { cn } from "@/lib/utils/cn";
 
-const showcaseImages = [
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuBYxhbTniE3ve3dilHWU-DYkyZma8v3go6hOyK3Cxdyo1LIUsUlwovmdMJzi-3qlmcFcg6WY0gSUbWUK21fkZY1w3oYqOzKxJawq7EDWZw9rlH4QPHnzXYEJPqwwStYE1lc6ZaUIVDb4eytOs0kJBBRN0ufixaFBSvkj6NQMbJvCHhs_2MYxjiieM6P6xbFOf-300nBqJS-yxfzd2HUi02WbztZ1OgFrcV6CoAZJwzeQK3b4Q9BbeD_P8MFzbPTdmlraHR1ENuLjfm7",
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuC7B9SV77BVxojgfSAzAeIKzM28qHQ0T_XLk2KZgiqBDX7E98ZIbQk4q9sHXsd8YTbrGHFKPgmx6WX8yPjCKAcQACYc9ys3IyfFMsnxoj4VQJ5y9BOiIYOek6Nuzoxw3DjxUXyYg6-M9HDiJHyWKRh6B5Haahh_jqtWSPUI4IlRfc2IYerCKCDNP8XMBXxTCI0Ov8hSQu69ANSyz4y-ypZ1ibD7kv2dMS3TACRjnYiypgGY50VDA9llgaqkEpSq5NQ0imNM7vDPy6-N",
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuA1OsDM4MJjvCthRTQ5ufxb2gA0aalRiymZw8NXyTppBcB4e6oh5TbIJWwqTv3MFtdn_HEX7VrpgqH_TSOYoKMBjlpAt9xN57HfoWrkfFVmyoC-Rhi9v5J3ujQB-mthEzfJz4pnJbzSH6aZpAUk7rJoloQ71OkrexOrEfCeV_2dA-LRAw-Uz8-ZgtMgDg2U4KrtD73vg4JHKE-G2cS41Fth4D32F7973vqmYD1WrlSwhj9-SB7vds5nVfk7hoKQDipRzpuKdSw1IYwT",
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuC3ln11-34AG5hX6x_diBSVWHBs2kyF1KDAd4E43sh86kj5DbQj1bO9u65_5YZuBX5nKpqk2CTwo3qDTCl99x9rD2iijkTucMaivX7HfgEuuk8inu8uBnxJWo3FkvBpkeZXPmRbR542lwvU6Jy30m77J0xdLrCKD6xdtBywAdRBOn0xJLUEZ3d3S1sgiRnrerZ5toAiIKgTgyGWtqFJQuhjS9Udivt_Imxp69EldnKQ8zVrELwHJmpFuE6JE4Fv3fi80bOyoOtz60Ej",
-];
-
 function formatDateLabel(value?: string, options?: Intl.DateTimeFormatOptions, fallback = "Date TBD") {
   if (!value) {
     return fallback;
@@ -86,10 +79,6 @@ function getAttendanceState(event: EventItem) {
   }
 
   return "RSVP confirmed";
-}
-
-function getImageByIndex(index: number) {
-  return showcaseImages[index % showcaseImages.length];
 }
 
 function getPastEventMonthDay(event: PastEventSummary) {
@@ -374,7 +363,7 @@ function HostingSection({
         className="flex gap-6 overflow-x-auto pb-6 scroll-smooth [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         ref={scrollerRef}
       >
-        {events.map((event, index) => (
+        {events.map((event) => (
           <EventPosterCard
             badgeLabel={getEventMonthDay(event)}
             className="w-[20rem] shrink-0"
@@ -382,7 +371,6 @@ function HostingSection({
             eventId={event.eventId}
             footerLabel={getAttendanceState(event)}
             href={`/events/${event.inviteToken}`}
-            imageSrc={getImageByIndex(index)}
             key={event.eventId}
             location={getShortLocation(event)}
             overlayAction={
@@ -409,15 +397,7 @@ function HostingSection({
   );
 }
 
-function AttendingCard({
-  event,
-  index,
-  overlayAction,
-}: {
-  event: EventItem;
-  index: number;
-  overlayAction?: ReactNode;
-}) {
+function AttendingCard({ event, overlayAction }: { event: EventItem; overlayAction?: ReactNode }) {
   return (
     <EventPosterCard
       badgeLabel={getEventMonthDay(event)}
@@ -426,7 +406,6 @@ function AttendingCard({
       eventId={event.eventId}
       footerLabel={getAttendanceState(event)}
       href={`/events/${event.inviteToken}`}
-      imageSrc={getImageByIndex(index + 1)}
       location={getShortLocation(event)}
       overlayAction={overlayAction}
       title={getEventTitle(event)}
@@ -570,10 +549,9 @@ function AttendingSection({
           className="flex gap-6 overflow-x-auto pb-6 scroll-smooth [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           ref={scrollerRef}
         >
-          {events.map((event, index) => (
+          {events.map((event) => (
             <AttendingCard
               event={event}
-              index={index}
               key={event.eventId}
               overlayAction={
                 <button

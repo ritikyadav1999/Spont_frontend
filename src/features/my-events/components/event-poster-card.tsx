@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { MapPin } from "lucide-react";
 import type { ReactNode } from "react";
@@ -38,7 +37,6 @@ type EventPosterCardProps = {
   title: string;
   location: string;
   description: string;
-  imageSrc: string;
   badgeLabel: string;
   footerLabel: string;
   eventId: string;
@@ -51,7 +49,6 @@ export function EventPosterCard({
   title,
   location,
   description,
-  imageSrc,
   badgeLabel,
   footerLabel,
   eventId,
@@ -64,9 +61,8 @@ export function EventPosterCard({
       href={href}
     >
       {overlayAction ? <div className="absolute left-4 top-4 z-20">{overlayAction}</div> : null}
-      <div className="relative h-48 overflow-hidden">
-        <Image alt={title} className="object-cover transition-transform duration-700 group-hover:scale-105" fill sizes="320px" src={imageSrc} />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0e0e0e]/35 to-transparent" />
+      <div className="relative h-48 overflow-hidden bg-surface-container-high">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_22%_18%,rgba(255,143,112,0.16),transparent_22%),radial-gradient(circle_at_78%_26%,rgba(113,122,255,0.12),transparent_20%),linear-gradient(180deg,rgba(255,255,255,0.02)_0%,rgba(255,255,255,0)_38%,rgba(0,0,0,0.18)_100%)]" />
         <div className="absolute right-4 top-4 rounded-xl bg-[#0e0e0e]/80 px-3 py-1 backdrop-blur-md">
           <p className="text-xs font-bold text-white">{badgeLabel}</p>
         </div>

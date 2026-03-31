@@ -9,6 +9,7 @@ export const API_ROUTES = {
     list: "/event",
     byToken: (token: string) => `/event/${token}`,
     create: "/event/create",
+    edit: (token: string) => `/event/${token}/edit`,
     myHostingEvents: "/event/my-events/hosting",
     myAttendingEvents: "/event/my-events/attending",
     myPastEvents: "/event/my-events/past",
