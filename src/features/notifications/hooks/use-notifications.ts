@@ -18,6 +18,15 @@ export const useNotifications = (enabled = true) =>
     refetchOnWindowFocus: true,
   });
 
+export const useUnreadNotificationsCount = (enabled = true) => {
+  const notificationsQuery = useNotifications(enabled);
+
+  return {
+    ...notificationsQuery,
+    unreadCount: (notificationsQuery.data ?? []).filter((notification) => !notification.read).length,
+  };
+};
+
 export const useMarkNotificationRead = () => {
   const queryClient = useQueryClient();
 

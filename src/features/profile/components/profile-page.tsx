@@ -9,6 +9,7 @@ import type { PastEventSummary } from "@/features/events/types/event.types";
 import { usePublicProfile } from "@/features/profile/hooks/use-profile";
 import { ExperienceCard } from "@/features/profile/components/experience-card";
 import { ExperienceFeatureCard } from "@/features/profile/components/experience-feature-card";
+import { PushNotificationSettingsCard } from "@/features/notifications/components/push-notification-settings-card";
 import type { PublicProfile } from "@/features/profile/types/public-profile.types";
 import type { ProfileExperience } from "@/features/profile/types/profile.types";
 import { getApiErrorMessage } from "@/lib/utils/api-response";
@@ -136,6 +137,12 @@ export function ProfilePage({ userId }: ProfilePageProps) {
       </section>
 
       <section className="mt-20">
+        {!isPublicProfile ? (
+          <div className="mb-10">
+            <PushNotificationSettingsCard />
+          </div>
+        ) : null}
+
         <div className="mb-8 flex items-baseline justify-between gap-4">
           <h2 className="font-headline text-3xl font-bold tracking-tight text-on-surface">Past Experiences</h2>
           {!isPublicProfile ? (

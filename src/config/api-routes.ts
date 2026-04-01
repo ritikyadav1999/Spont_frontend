@@ -22,6 +22,7 @@ export const API_ROUTES = {
   notifications: {
     list: "/notifications",
     markRead: (id: string | number) => `/notifications/${id}/read`,
+    pushSubscription: "/notifications/push/subscription",
   },
   feedback: {
     submit: "/feedback/submit",

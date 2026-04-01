@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ArrowRight, X, ChevronsLeft, ChevronsRight, Compass, ChevronUp, LogOut, Bell, Plus, UserRound, CalendarRange, MessageSquare } from "lucide-react";
 import { useAuth, useLogout } from "@/features/auth/hooks/use-auth";
-import { useNotifications } from "@/features/notifications/hooks/use-notifications";
+import { useUnreadNotificationsCount } from "@/features/notifications/hooks/use-notifications";
 import { cn } from "@/lib/utils/cn";
 
 const navigationItems = [
@@ -86,10 +86,9 @@ export function AppSidebar({
   const router = useRouter();
   const { user, isAuthenticated } = useAuth();
   const logoutMutation = useLogout();
-  const notificationsQuery = useNotifications(isAuthenticated);
+  const { unreadCount: unreadNotificationsCount } = useUnreadNotificationsCount(isAuthenticated);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const firstName = user?.name?.trim().split(/\s+/)[0] ?? "there";
-  const unreadNotificationsCount = (notificationsQuery.data ?? []).filter((notification) => !notification.read).length;
 
   const handleLogout = () => {
     logoutMutation.mutate(undefined, {

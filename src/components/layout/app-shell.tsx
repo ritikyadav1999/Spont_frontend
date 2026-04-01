@@ -7,6 +7,7 @@ import type { ReactNode } from "react";
 import { Menu } from "lucide-react";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { useAuth } from "@/features/auth/hooks/use-auth";
+import { useUnreadNotificationsCount } from "@/features/notifications/hooks/use-notifications";
 
 type AppShellProps = {
   children: ReactNode;
@@ -15,6 +16,7 @@ type AppShellProps = {
 export function AppShell({ children }: AppShellProps) {
   const router = useRouter();
   const { isAuthenticated, isLoading } = useAuth();
+  const { unreadCount } = useUnreadNotificationsCount(isAuthenticated);
   const [isCollapsed, setIsCollapsed] = useState(() => {
     if (typeof window === "undefined") {
       return false;
@@ -73,11 +75,16 @@ export function AppShell({ children }: AppShellProps) {
               <button
                 aria-expanded={isMobileSidebarOpen}
                 aria-label="Open menu"
-                className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-surface-container text-on-surface transition-colors hover:bg-surface-container-high"
+                className="relative inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-surface-container text-on-surface transition-colors hover:bg-surface-container-high"
                 onClick={() => setIsMobileSidebarOpen(true)}
                 type="button"
               >
                 <Menu className="h-5 w-5" />
+                {unreadCount > 0 ? (
+                  <span className="absolute right-2 top-2 inline-flex min-w-5 items-center justify-center rounded-full bg-primary px-1.5 py-0.5 text-[0.62rem] font-bold leading-none text-on-primary-container shadow-[0_0_14px_rgba(255,143,112,0.55)]">
+                    {unreadCount > 99 ? "99+" : unreadCount}
+                  </span>
+                ) : null}
               </button>
             </div>
           </div>
