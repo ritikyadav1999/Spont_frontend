@@ -1,13 +1,12 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
-import { Menu } from "lucide-react";
 import { AppSidebar } from "@/components/layout/app-sidebar";
+import { BottomNavBar } from "@/components/layout/bottom-nav-bar";
+import { MobileTopBar } from "@/components/layout/mobile-top-bar";
 import { useAuth } from "@/features/auth/hooks/use-auth";
-import { useUnreadNotificationsCount } from "@/features/notifications/hooks/use-notifications";
 
 type AppShellProps = {
   children: ReactNode;
@@ -16,7 +15,6 @@ type AppShellProps = {
 export function AppShell({ children }: AppShellProps) {
   const router = useRouter();
   const { isAuthenticated, isLoading } = useAuth();
-  const { unreadCount } = useUnreadNotificationsCount(isAuthenticated);
   const [isCollapsed, setIsCollapsed] = useState(() => {
     if (typeof window === "undefined") {
       return false;
@@ -24,26 +22,12 @@ export function AppShell({ children }: AppShellProps) {
 
     return window.localStorage.getItem("spont.sidebar.collapsed") === "true";
   });
-  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       router.replace("/login");
     }
   }, [isAuthenticated, isLoading, router]);
-
-  useEffect(() => {
-    if (!isMobileSidebarOpen) {
-      return;
-    }
-
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
-    return () => {
-      document.body.style.overflow = originalOverflow;
-    };
-  }, [isMobileSidebarOpen]);
 
   const handleToggleSidebar = () => {
     setIsCollapsed((prev) => {
@@ -59,38 +43,23 @@ export function AppShell({ children }: AppShellProps) {
 
   return (
     <div className="min-h-screen bg-background text-on-surface">
+      {/* Desktop-only sidebar */}
       <AppSidebar collapsed={isCollapsed} onToggleCollapse={handleToggleSidebar} />
-      <AppSidebar isOpen={isMobileSidebarOpen} mobile onClose={() => setIsMobileSidebarOpen(false)} />
+
+      {/* Main content */}
       <div className={isCollapsed ? "min-h-screen min-w-0 lg:pl-[6.25rem]" : "min-h-screen min-w-0 lg:pl-[15.5rem]"}>
-        <div className="flex min-h-screen min-w-0 flex-1 flex-col px-4 py-4 lg:px-8 lg:py-6 xl:px-10">
-          <div className="sticky top-0 z-40 -mx-4 mb-4 border-b border-white/8 bg-background/92 px-4 py-3 backdrop-blur lg:hidden">
-            <div className="flex items-center justify-between gap-3">
-              <Link
-                className="inline-flex items-baseline whitespace-nowrap"
-                href="/discover"
-              >
-                <span className="font-headline text-[1.85rem] font-black tracking-tighter text-primary">Spont</span>
-                <span className="ml-0.5 font-headline text-[1.85rem] font-black tracking-tighter text-on-surface">aneous</span>
-              </Link>
-              <button
-                aria-expanded={isMobileSidebarOpen}
-                aria-label="Open menu"
-                className="relative inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-surface-container text-on-surface transition-colors hover:bg-surface-container-high"
-                onClick={() => setIsMobileSidebarOpen(true)}
-                type="button"
-              >
-                <Menu className="h-5 w-5" />
-                {unreadCount > 0 ? (
-                  <span className="absolute right-2 top-2 inline-flex min-w-5 items-center justify-center rounded-full bg-primary px-1.5 py-0.5 text-[0.62rem] font-bold leading-none text-on-primary-container shadow-[0_0_14px_rgba(255,143,112,0.55)]">
-                    {unreadCount > 99 ? "99+" : unreadCount}
-                  </span>
-                ) : null}
-              </button>
-            </div>
-          </div>
-          <div className="flex-1">{children}</div>
+        <div
+          className="flex min-h-screen min-w-0 flex-1 flex-col px-4 pt-0 pb-4 lg:px-8 lg:py-6 xl:px-10"
+          style={{ paddingBottom: "calc(3.4rem + env(safe-area-inset-bottom) + 0.5rem)" }}
+        >
+          {/* Logo + Bell — mobile only */}
+          <MobileTopBar />
+          <div className="flex-1 pt-3">{children}</div>
         </div>
       </div>
+
+      {/* Mobile-only bottom tab bar */}
+      <BottomNavBar />
     </div>
   );
 }

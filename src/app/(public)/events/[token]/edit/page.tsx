@@ -1,3 +1,4 @@
+import { PublicBrowseShell } from "@/components/layout/public-browse-shell";
 import { EditEventPage } from "@/features/host/components/edit-event-page";
 
 type EditEventRouteProps = {
@@ -9,5 +10,9 @@ type EditEventRouteProps = {
 export default async function EditEventRoute({ params }: EditEventRouteProps) {
   const { token } = await params;
 
-  return <EditEventPage token={token} />;
+  return (
+    <PublicBrowseShell>
+      <EditEventPage token={token} />
+    </PublicBrowseShell>
+  );
 }

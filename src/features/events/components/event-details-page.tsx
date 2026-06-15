@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowUpRight, CalendarDays, PencilLine, Share2, Users } from "lucide-react";
+import { ArrowUpRight, CalendarDays, MapPin, PencilLine, Share2, Users } from "lucide-react";
 import { useMemo, useState } from "react";
+import { cn } from "@/lib/utils/cn";
 import { useAuth } from "@/features/auth/hooks/use-auth";
 import {
   useApprovedParticipants,
@@ -268,225 +269,268 @@ export function EventDetailsPage({ token }: { token: string }) {
   }
 
   return (
-    <div className="ui-page-shell pb-12">
-      <header className="mb-8">
-        <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
-          <div>
-            <h1 className="max-w-4xl font-headline text-5xl font-black leading-[0.94] tracking-[-0.04em] text-on-surface xl:text-[4.3rem]">
-              {event.title}
-            </h1>
-            <div className="mt-4 flex flex-wrap items-center gap-5 text-sm text-on-surface-variant">
-              <span className="inline-flex items-center gap-2">
-                <CalendarDays className="h-4 w-4 text-primary" />
-                {formatDateLabel(event.startTime)}
-              </span>
-              <span className="inline-flex items-center gap-2">
-                <Users className="h-4 w-4 text-primary" />
-                Invite Friends
-              </span>
-            </div>
-          </div>
-          <div className="flex flex-wrap gap-3">
-            {shouldShowJoinButton ? (
-              <button
-                className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-bold text-on-primary-container transition-transform hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-60"
-                disabled={(isAuthenticated && !canJoin) || requestJoinMutation.isPending}
-                onClick={handleJoin}
-                type="button"
-              >
-                {requestJoinMutation.isPending ? "Submitting..." : joinButtonLabel}
-              </button>
-            ) : null}
-            {shouldShowEditButton ? (
-              <Link
-                className="inline-flex items-center gap-2 rounded-full bg-surface-container-high px-5 py-3 text-sm font-semibold text-on-surface transition-colors hover:bg-surface-container-highest"
-                href={`/events/${token}/edit`}
-              >
-                <PencilLine className="h-4 w-4" />
-                Edit Event
-              </Link>
-            ) : null}
+    <div className="ui-page-shell pb-24 lg:pb-12 max-w-5xl mx-auto">
+      {/* Sticky Bottom Bar for Mobile Actions */}
+      <div className="fixed bottom-[calc(3.4rem+env(safe-area-inset-bottom))] left-0 right-0 z-40 px-4 py-3 bg-gradient-to-t from-background via-background/95 to-transparent border-t border-white/[0.04] lg:hidden">
+        <div className="flex gap-2">
+          {shouldShowJoinButton && (
             <button
-              className="inline-flex items-center gap-2 rounded-full bg-surface-container-high px-5 py-3 text-sm font-semibold text-on-surface transition-colors hover:bg-surface-container-highest"
-              onClick={handleShare}
+              className="flex-1 inline-flex items-center justify-center gap-2 rounded-2xl bg-primary py-3.5 text-xs font-bold text-[#480d00] transition-transform active:scale-[0.98] disabled:opacity-50"
+              disabled={(isAuthenticated && !canJoin) || requestJoinMutation.isPending}
+              onClick={handleJoin}
               type="button"
             >
-              <Share2 className="h-4 w-4" />
-              {shareState === "copied" ? "Copied Link" : "Share Link"}
+              {requestJoinMutation.isPending ? "Submitting..." : joinButtonLabel}
             </button>
-          </div>
+          )}
+          {shouldShowEditButton && (
+            <Link
+              className="flex-1 inline-flex items-center justify-center gap-2 rounded-2xl bg-surface-container-high py-3.5 text-xs font-semibold text-on-surface transition-colors hover:bg-surface-container-highest"
+              href={`/events/${token}/edit`}
+            >
+              <PencilLine className="h-4 w-4" />
+              Edit Event
+            </Link>
+          )}
+          <button
+            className={cn(
+              "inline-flex items-center justify-center rounded-2xl bg-surface-container-high px-4 py-3.5 text-xs font-semibold text-on-surface transition-colors hover:bg-surface-container-highest",
+              (shouldShowJoinButton || shouldShowEditButton) ? "w-12 shrink-0" : "flex-1"
+            )}
+            onClick={handleShare}
+            type="button"
+            aria-label="Share Link"
+          >
+            <Share2 className="h-4 w-4" />
+            {!(shouldShowJoinButton || shouldShowEditButton) && (
+              <span className="ml-2">
+                {shareState === "copied" ? "Copied" : "Share"}
+              </span>
+            )}
+          </button>
         </div>
-      </header>
+      </div>
 
-      {!isAuthenticated && !isPastEvent ? (
-        <div className="mb-6 rounded-2xl border border-white/8 bg-surface-container px-4 py-3 text-sm text-on-surface-variant">
-          Sign in or create an account to request your spot at this event and see the latest attendee updates.
-        </div>
-      ) : null}
-
-      {isAuthenticated && isPendingParticipant && !isPastEvent ? (
-        <div className="mb-6 rounded-2xl bg-surface-container px-4 py-3 text-sm text-on-surface-variant">
-          Your join request is pending approval from the host.
-        </div>
-      ) : null}
-
-      {isAuthenticated && isApprovedParticipant && !isHostView && !isCoHostView && !isPastEvent ? (
-        <div className="mb-6 rounded-2xl bg-surface-container px-4 py-3 text-sm text-on-surface-variant">
-          You are already on the guest list for this event.
-        </div>
-      ) : null}
-
-      {isAuthenticated && shouldShowJoinButton && !canJoin && !isPastEvent ? (
-        <div className="mb-6 rounded-2xl bg-surface-container px-4 py-3 text-sm text-on-surface-variant">
-          Complete your profile with <span className="text-on-surface">name, gender, and phone</span> before joining an event.
-        </div>
-      ) : null}
-
-      <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_20rem] 2xl:grid-cols-[minmax(0,1fr)_22rem]">
-        <div className="space-y-8">
-          <section className="relative h-[23rem] overflow-hidden rounded-[2rem] bg-surface-container">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgba(255,143,112,0.14),transparent_20%),radial-gradient(circle_at_78%_24%,rgba(123,134,255,0.12),transparent_18%),radial-gradient(circle_at_58%_76%,rgba(255,255,255,0.05),transparent_28%),linear-gradient(180deg,rgba(255,255,255,0.02)_0%,rgba(255,255,255,0)_38%,rgba(0,0,0,0.2)_100%)]" />
-            <div className="absolute bottom-5 left-5 flex items-center gap-2">
-              <span className="rounded-full bg-primary/22 px-3 py-1 text-[0.62rem] font-bold uppercase tracking-[0.18em] text-primary">
+      <div className="grid gap-6 lg:grid-cols-[1fr_20rem] xl:grid-cols-[1fr_22rem]">
+        {/* Left Column */}
+        <div className="space-y-6">
+          {/* Hero Cover Card */}
+          <section className="relative h-[15rem] sm:h-[18rem] md:h-[22rem] overflow-hidden rounded-3xl bg-surface-container-low border border-white/[0.04]">
+            {/* Visual background using premium styling */}
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,143,112,0.18),transparent_40%),radial-gradient(circle_at_80%_30%,rgba(123,134,255,0.15),transparent_40%),radial-gradient(circle_at_50%_80%,rgba(120,214,191,0.12),transparent_40%)]" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0e0e0e] via-transparent to-transparent" />
+            
+            {/* Overlaid badges */}
+            <div className="absolute bottom-4 left-4 flex flex-wrap gap-2">
+              <span className="rounded-full bg-[#0e0e0e]/60 backdrop-blur-md border border-white/[0.08] px-3 py-1 text-[0.62rem] font-bold uppercase tracking-wider text-primary">
                 {event.joinMode === "APPROVAL_REQUIRED" ? "Approval Required" : "Open Entry"}
               </span>
-              <span className="rounded-full bg-tertiary/18 px-3 py-1 text-[0.62rem] font-bold uppercase tracking-[0.18em] text-tertiary">
+              <span className="rounded-full bg-[#0e0e0e]/60 backdrop-blur-md border border-white/[0.08] px-3 py-1 text-[0.62rem] font-bold uppercase tracking-wider text-tertiary">
                 {event.visibility}
               </span>
+              {isPastEvent && (
+                <span className="rounded-full bg-rose-500/20 backdrop-blur-md border border-rose-500/30 px-3 py-1 text-[0.62rem] font-bold uppercase tracking-wider text-rose-400">
+                  Ended
+                </span>
+              )}
             </div>
           </section>
 
-          <section className="rounded-[2rem] bg-surface-container p-6 sm:p-8">
-            <h2 className="mb-4 font-headline text-[1.75rem] font-bold tracking-tight text-on-surface">Event Info</h2>
-            <div className="text-sm leading-7 text-on-surface-variant">
-              <p>{event.description}</p>
+          {/* Title & Info Header */}
+          <div className="space-y-2.5">
+            <h1 className="font-headline text-3xl font-extrabold leading-tight tracking-tight text-on-surface sm:text-4xl md:text-5xl">
+              {event.title}
+            </h1>
+            <div className="flex items-center gap-2 text-xs text-on-surface-variant">
+              <span>Hosted by <span className="font-semibold text-on-surface">{host}</span></span>
+              <span>•</span>
+              <span>{formatDateLabel(event.startTime)}</span>
             </div>
+          </div>
 
-            <div className="mt-6 grid gap-3 sm:grid-cols-2">
-              <div className="rounded-2xl bg-surface-container-high p-4">
-                <p className="text-[0.58rem] font-bold uppercase tracking-[0.18em] text-primary">Start Time</p>
-                <p className="mt-2 text-xl font-black text-on-surface">{formatTimeLabel(event.startTime)}</p>
-                <p className="text-xs text-on-surface-variant">{formatDateLabel(event.startTime)}</p>
+          {/* Dynamic alerts */}
+          <div className="space-y-3">
+            {!isAuthenticated && !isPastEvent && (
+              <div className="rounded-2xl border border-white/[0.05] bg-primary/5 px-4 py-3.5 text-xs text-primary/90 flex gap-3 items-center">
+                <span className="text-base">✨</span>
+                <span>Sign in or create an account to request your spot and see updates.</span>
               </div>
-              <div className="rounded-2xl bg-surface-container-high p-4">
-                <p className="text-[0.58rem] font-bold uppercase tracking-[0.18em] text-tertiary">End Time</p>
-                <p className="mt-2 text-xl font-black text-on-surface">{formatTimeLabel(event.endTime)}</p>
-                <p className="text-xs text-on-surface-variant">{formatDateLabel(event.endTime)}</p>
+            )}
+            {isAuthenticated && isPendingParticipant && !isPastEvent && (
+              <div className="rounded-2xl border border-white/[0.05] bg-tertiary/5 px-4 py-3.5 text-xs text-tertiary/90 flex gap-3 items-center">
+                <span className="text-base">⏳</span>
+                <span>Your join request is pending approval from the host.</span>
               </div>
-            </div>
+            )}
+            {isAuthenticated && isApprovedParticipant && !isHostView && !isCoHostView && !isPastEvent && (
+              <div className="rounded-2xl border border-white/[0.05] bg-emerald-500/5 px-4 py-3.5 text-xs text-emerald-400 flex gap-3 items-center">
+                <span className="text-base">✅</span>
+                <span>You are on the guest list for this event!</span>
+              </div>
+            )}
+            {isAuthenticated && shouldShowJoinButton && !canJoin && !isPastEvent && (
+              <div className="rounded-2xl border border-amber-500/20 bg-amber-500/5 px-4 py-3.5 text-xs text-amber-300 flex gap-3 items-center">
+                <span className="text-base">⚠️</span>
+                <span>
+                  Please complete your profile with <span className="underline font-semibold">name, gender, and phone</span> to join.
+                </span>
+              </div>
+            )}
+          </div>
 
-            <div className="mt-3 grid gap-3 sm:grid-cols-2">
-              <div className="rounded-2xl bg-surface-container-high p-4">
-                <p className="text-[0.58rem] font-bold uppercase tracking-[0.18em] text-on-surface-variant">Location</p>
-                <p className="mt-2 text-sm font-semibold text-on-surface">{event.locationName}</p>
-                <p className="mt-1 text-xs text-on-surface-variant">
-                  {event.latitude.toFixed(4)}, {event.longitude.toFixed(4)}
+          {/* Details Card */}
+          <section className="rounded-3xl bg-surface-container/60 border border-white/[0.04] p-5 space-y-4" title={formatDateRange(event.startTime, event.endTime)}>
+            {/* Date and Time Row */}
+            <div className="flex items-start gap-3.5">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <CalendarDays className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-on-surface">
+                  {formatDateLabel(event.startTime)}
+                </p>
+                <p className="text-xs text-on-surface-variant">
+                  {formatTimeLabel(event.startTime)} - {formatTimeLabel(event.endTime)}
                 </p>
               </div>
-              <div className="rounded-2xl bg-surface-container-high p-4">
-                <p className="text-[0.58rem] font-bold uppercase tracking-[0.18em] text-on-surface-variant">Capacity</p>
-                <div className="mt-2 flex items-end justify-between gap-2">
-                  <p className="text-xl font-black text-on-surface">
-                    {confirmedCount}/{event.maxParticipants}
+            </div>
+
+            {/* Location Row */}
+            <div className="flex items-start gap-3.5">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-tertiary/10 text-tertiary">
+                <MapPin className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-on-surface">
+                  {event.locationName.split(",")[0]}
+                </p>
+                <p className="text-xs text-on-surface-variant line-clamp-1">
+                  {event.locationName}
+                </p>
+              </div>
+            </div>
+
+            {/* Capacity / Guest Count Row */}
+            <div className="flex items-start gap-3.5">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/[0.06] text-on-surface-variant">
+                <Users className="h-5 w-5" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex justify-between items-center">
+                  <p className="text-sm font-semibold text-on-surface">
+                    Guests
                   </p>
-                  <p className="text-xs font-semibold text-primary">{capacityPercent}% filled</p>
+                  <p className="text-xs font-bold text-primary">
+                    {confirmedCount} / {event.maxParticipants} ({capacityPercent}% filled)
+                  </p>
                 </div>
-                <div className="mt-3 h-2 overflow-hidden rounded-full bg-surface">
-                  <div className="h-full rounded-full bg-primary transition-all duration-500" style={{ width: `${capacityPercent}%` }} />
+                <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-surface-container-highest">
+                  <div 
+                    className="h-full rounded-full bg-primary transition-all duration-500" 
+                    style={{ width: `${capacityPercent}%` }} 
+                  />
                 </div>
               </div>
             </div>
           </section>
 
-          <section>
-            <h2 className="mb-4 flex items-center gap-3 font-headline text-[1.95rem] font-bold tracking-tight text-on-surface">
-              <span className="h-8 w-2 rounded-full bg-tertiary" />
+          {/* Description Section */}
+          <section className="space-y-2 bg-surface-container/30 border border-white/[0.03] rounded-3xl p-5">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-on-surface-variant/70">
+              About the Event
+            </h3>
+            <p className="text-sm leading-relaxed text-on-surface-variant">
+              {event.description}
+            </p>
+          </section>
+
+          {/* Approved Guests Section */}
+          <section className="space-y-4">
+            <h2 className="flex items-center gap-2.5 font-headline text-xl font-bold tracking-tight text-on-surface">
+              <span className="h-5 w-1 rounded-full bg-tertiary" />
               <span>
-                Approved Participants <span className="text-on-surface-variant">{confirmedMembers.length}</span>
+                Approved Participants <span className="text-on-surface-variant font-normal">({confirmedMembers.length})</span>
               </span>
             </h2>
 
             {approvedQuery.isLoading ? (
-              <div className="h-44 animate-pulse rounded-2xl bg-surface-container" />
+              <div className="h-32 animate-pulse rounded-2xl bg-surface-container" />
             ) : confirmedMembers.length ? (
-              <div className="overflow-hidden rounded-[1.7rem] bg-surface-container">
-                <div className="grid grid-cols-[minmax(0,1fr)_8rem_6rem] bg-surface-container-high px-5 py-3 text-[0.58rem] font-bold uppercase tracking-[0.2em] text-on-surface-variant">
-                  <span>Participant</span>
-                  <span>Status</span>
-                  <span className="text-right">Actions</span>
-                </div>
-                <div className="divide-y divide-white/5">
-                  {confirmedMembers.map((participant) => {
-                    const participantId = participant.participantId ?? participant.userId;
-                    const isSavingThisParticipant =
-                      participantDecisionMutation.isPending && participantDecisionMutation.variables?.participantId === participantId;
+              <div className="space-y-2">
+                {confirmedMembers.map((participant) => {
+                  const participantId = participant.participantId ?? participant.userId;
+                  const isSavingThisParticipant =
+                    participantDecisionMutation.isPending && participantDecisionMutation.variables?.participantId === participantId;
 
-                    return (
-                      <div className="grid grid-cols-[minmax(0,1fr)_8rem_6rem] items-center px-5 py-4" key={`${participant.name}-${participant.role}`}>
-                        <div className="flex min-w-0 items-center gap-3">
-                          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/15 text-xs font-black text-primary">
-                            {getInitials(participant.name)}
-                          </div>
-                          <div className="min-w-0">
-                            <p className="truncate text-sm font-bold text-on-surface">{participant.name}</p>
-                            <p className="text-xs text-on-surface-variant">{timeAgo(participant.joinedAt, currentTime)}</p>
-                          </div>
+                  return (
+                    <div 
+                      key={`${participant.name}-${participant.role}`}
+                      className="flex items-center justify-between rounded-2xl bg-surface-container/30 border border-white/[0.03] p-3"
+                    >
+                      <div className="flex min-w-0 items-center gap-3">
+                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-xs font-black text-primary">
+                          {getInitials(participant.name)}
                         </div>
-                        <span className="inline-flex w-fit rounded-full bg-tertiary/15 px-2.5 py-1 text-[0.6rem] font-bold uppercase tracking-[0.14em] text-tertiary">
-                          Attendee
-                        </span>
-                        <div className="flex justify-end gap-2">
-                          {canModerateApproved && participantId ? (
-                            <>
-                              <button
-                                className="rounded-lg bg-surface-container-high px-2 py-1.5 text-[0.62rem] font-bold uppercase tracking-[0.12em] text-on-surface transition-colors hover:bg-surface-container-highest disabled:opacity-60"
-                                disabled={participantDecisionMutation.isPending}
-                                onClick={() => handleParticipantDecision(participant, "co_host")}
-                                type="button"
-                              >
-                                {isSavingThisParticipant && participantDecisionMutation.variables?.decision === "co_host" ? "..." : "Co"}
-                              </button>
-                              <button
-                                className="rounded-lg bg-surface-container-high px-2 py-1.5 text-[0.62rem] font-bold uppercase tracking-[0.12em] text-on-surface transition-colors hover:bg-surface-container-highest disabled:opacity-60"
-                                disabled={participantDecisionMutation.isPending}
-                                onClick={() => handleParticipantDecision(participant, "REJECTED")}
-                                type="button"
-                              >
-                                {isSavingThisParticipant && participantDecisionMutation.variables?.decision === "REJECTED" ? "..." : "X"}
-                              </button>
-                            </>
-                          ) : (
-                            <span className="text-xs text-on-surface-variant">-</span>
-                          )}
+                        <div className="min-w-0">
+                          <p className="truncate text-xs font-bold text-on-surface">{participant.name}</p>
+                          <p className="text-[0.6rem] text-on-surface-variant">{timeAgo(participant.joinedAt, currentTime)}</p>
                         </div>
                       </div>
-                    );
-                  })}
-                </div>
+                      
+                      <div className="flex items-center gap-2">
+                        {canModerateApproved && participantId ? (
+                          <div className="flex gap-1.5">
+                            <button
+                              className="rounded-xl bg-surface-container-high px-2.5 py-1.5 text-[0.62rem] font-bold uppercase tracking-wider text-on-surface transition-colors hover:bg-surface-container-highest disabled:opacity-60"
+                              disabled={participantDecisionMutation.isPending}
+                              onClick={() => handleParticipantDecision(participant, "co_host")}
+                              type="button"
+                            >
+                              {isSavingThisParticipant && participantDecisionMutation.variables?.decision === "co_host" ? "..." : "Co-Host"}
+                            </button>
+                            <button
+                              className="rounded-xl bg-rose-500/10 px-2.5 py-1.5 text-[0.62rem] font-bold uppercase tracking-wider text-rose-400 transition-colors hover:bg-rose-500/20 disabled:opacity-60"
+                              disabled={participantDecisionMutation.isPending}
+                              onClick={() => handleParticipantDecision(participant, "REJECTED")}
+                              type="button"
+                            >
+                              {isSavingThisParticipant && participantDecisionMutation.variables?.decision === "REJECTED" ? "..." : "Remove"}
+                            </button>
+                          </div>
+                        ) : (
+                          <span className="rounded-full bg-tertiary/10 px-2.5 py-1 text-[0.58rem] font-bold uppercase tracking-wider text-tertiary">
+                            Guest
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             ) : (
-              <div className="rounded-2xl bg-surface-container p-4 text-sm text-on-surface-variant">No approved members yet.</div>
+              <div className="rounded-2xl bg-surface-container/30 border border-white/[0.03] p-4 text-xs text-on-surface-variant text-center">No approved members yet.</div>
             )}
           </section>
 
-          {!isPastEvent ? (
-            <section>
-              <div className="mb-4 flex items-center justify-between gap-4">
-                <h2 className="flex items-center gap-3 font-headline text-[1.95rem] font-bold tracking-tight text-on-surface">
-                  <span className="h-8 w-2 rounded-full bg-primary" />
+          {/* Waiting List Section */}
+          {!isPastEvent && (
+            <section className="space-y-4">
+              <div className="flex items-center justify-between gap-4">
+                <h2 className="flex items-center gap-2.5 font-headline text-xl font-bold tracking-tight text-on-surface">
+                  <span className="h-5 w-1 rounded-full bg-primary" />
                   <span>
-                    Waiting List <span className="text-primary">{pendingParticipants.length}</span>
+                    Waiting List <span className="text-primary font-normal">({pendingParticipants.length})</span>
                   </span>
                 </h2>
                 {canModeratePending && pendingParticipants.length ? (
-                  <span className="text-xs font-bold uppercase tracking-[0.16em] text-primary">Approve All</span>
+                  <span className="text-[0.65rem] font-bold uppercase tracking-wider text-primary cursor-pointer hover:underline">Approve All</span>
                 ) : null}
               </div>
 
               {pendingQuery.isLoading ? (
-                <div className="h-44 animate-pulse rounded-2xl bg-surface-container" />
+                <div className="h-32 animate-pulse rounded-2xl bg-surface-container" />
               ) : pendingParticipants.length ? (
-                <div className="space-y-3">
+                <div className="space-y-2">
                   {pendingParticipants.map((participant) => {
                     const participantId = participant.participantId ?? participant.userId;
                     const isSavingThisParticipant =
@@ -494,47 +538,47 @@ export function EventDetailsPage({ token }: { token: string }) {
 
                     return (
                       <article
-                        className="flex flex-col gap-4 rounded-2xl bg-surface-container p-4 sm:flex-row sm:items-center sm:justify-between"
+                        className="flex items-center justify-between rounded-2xl bg-surface-container/50 border border-white/[0.04] p-3.5"
                         key={`${participant.name}-${participant.role}`}
                       >
                         <div className="flex min-w-0 items-center gap-3">
-                          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/15 text-sm font-black text-primary">
+                          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
                             {getInitials(participant.name)}
                           </div>
-                          <div className="min-w-0 flex-1">
-                            <h3 className="truncate text-lg font-bold text-on-surface">{participant.name}</h3>
-                            <p className="line-clamp-2 text-xs text-on-surface-variant">Pending approval to join this event.</p>
+                          <div className="min-w-0">
+                            <p className="truncate text-xs font-bold text-on-surface">{participant.name}</p>
+                            <p className="text-[0.6rem] text-on-surface-variant">Wants to join</p>
                           </div>
                         </div>
                         {canModeratePending && participantId ? (
-                          <div className="grid grid-cols-3 gap-2 sm:w-[24rem]">
+                          <div className="flex gap-1.5">
                             <button
-                              className="rounded-xl bg-primary px-3 py-2.5 text-sm font-bold text-on-primary-container transition-colors hover:brightness-110 disabled:opacity-60"
+                              className="rounded-xl bg-primary px-3 py-1.5 text-[0.68rem] font-bold text-[#480d00] transition-colors hover:brightness-115 disabled:opacity-60"
                               disabled={participantDecisionMutation.isPending}
                               onClick={() => handleParticipantDecision(participant, "approved")}
                               type="button"
                             >
-                              {isSavingThisParticipant && participantDecisionMutation.variables?.decision === "approved" ? "Saving..." : "Accept"}
+                              {isSavingThisParticipant && participantDecisionMutation.variables?.decision === "approved" ? "..." : "Accept"}
                             </button>
                             <button
-                              className="rounded-xl bg-surface-container-high px-3 py-2.5 text-sm font-semibold text-on-surface transition-colors hover:bg-surface-container-highest disabled:opacity-60"
+                              className="rounded-xl bg-surface-container-high px-3 py-1.5 text-[0.68rem] font-semibold text-on-surface transition-colors hover:bg-surface-container-highest disabled:opacity-60"
                               disabled={participantDecisionMutation.isPending}
                               onClick={() => handleParticipantDecision(participant, "co_host")}
                               type="button"
                             >
-                              {isSavingThisParticipant && participantDecisionMutation.variables?.decision === "co_host" ? "Saving..." : "Co-Host"}
+                              {isSavingThisParticipant && participantDecisionMutation.variables?.decision === "co_host" ? "..." : "Co"}
                             </button>
                             <button
-                              className="rounded-xl bg-surface-container-high px-3 py-2.5 text-sm font-semibold text-on-surface transition-colors hover:bg-surface-container-highest disabled:opacity-60"
+                              className="rounded-xl bg-rose-500/10 px-3 py-1.5 text-[0.68rem] font-semibold text-rose-400 transition-colors hover:bg-rose-500/20 disabled:opacity-60"
                               disabled={participantDecisionMutation.isPending}
                               onClick={() => handleParticipantDecision(participant, "REJECTED")}
                               type="button"
                             >
-                              {isSavingThisParticipant && participantDecisionMutation.variables?.decision === "REJECTED" ? "Saving..." : "Reject"}
+                              {isSavingThisParticipant && participantDecisionMutation.variables?.decision === "REJECTED" ? "..." : "Reject"}
                             </button>
                           </div>
                         ) : (
-                          <span className="inline-flex rounded-full bg-surface-container-high px-3 py-1 text-[0.62rem] font-bold uppercase tracking-[0.16em] text-tertiary">
+                          <span className="rounded-full bg-surface-container-high px-2.5 py-1 text-[0.58rem] font-bold uppercase tracking-wider text-tertiary">
                             Pending
                           </span>
                         )}
@@ -543,43 +587,78 @@ export function EventDetailsPage({ token }: { token: string }) {
                   })}
                 </div>
               ) : (
-                <div className="rounded-2xl bg-surface-container p-4 text-sm text-on-surface-variant">No pending requests right now.</div>
+                <div className="rounded-2xl bg-surface-container/30 border border-white/[0.03] p-4 text-xs text-on-surface-variant text-center">No pending requests right now.</div>
               )}
             </section>
-          ) : null}
+          )}
         </div>
 
-        <aside className="space-y-5">
-          <section className="overflow-hidden rounded-[1.9rem] bg-surface-container p-6">
-            <div className="mb-5 flex items-center gap-4">
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/15 text-lg font-black text-primary">
+        {/* Right Column */}
+        <div className="space-y-6">
+          {/* Action Card for Desktop */}
+          <div className="hidden lg:block rounded-3xl bg-surface-container/60 border border-white/[0.04] p-5 space-y-3">
+            <p className="text-xs font-bold uppercase tracking-wider text-on-surface-variant/70">Actions</p>
+            {shouldShowJoinButton && (
+              <button
+                className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-primary py-3.5 text-sm font-bold text-[#480d00] transition-transform hover:scale-[1.02] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+                disabled={(isAuthenticated && !canJoin) || requestJoinMutation.isPending}
+                onClick={handleJoin}
+                type="button"
+              >
+                {requestJoinMutation.isPending ? "Submitting..." : joinButtonLabel}
+              </button>
+            )}
+            {shouldShowEditButton && (
+              <Link
+                className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-surface-container-high py-3.5 text-sm font-semibold text-on-surface transition-colors hover:bg-surface-container-highest"
+                href={`/events/${token}/edit`}
+              >
+                <PencilLine className="h-4 w-4" />
+                Edit Event
+              </Link>
+            )}
+            <button
+              className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-surface-container-high py-3.5 text-sm font-semibold text-on-surface transition-colors hover:bg-surface-container-highest"
+              onClick={handleShare}
+              type="button"
+            >
+              <Share2 className="h-4 w-4" />
+              {shareState === "copied" ? "Copied Link" : "Share Link"}
+            </button>
+          </div>
+
+          {/* Host Card */}
+          <section className="overflow-hidden rounded-3xl bg-surface-container/40 border border-white/[0.04] p-5">
+            <div className="flex items-center gap-4">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-lg font-black text-primary">
                 {getInitials(host)}
               </div>
               <div>
-                <p className="text-xl font-black text-on-surface">{host}</p>
-                <p className="text-[0.6rem] font-bold uppercase tracking-[0.18em] text-primary">Main Host</p>
+                <p className="text-lg font-black text-on-surface leading-tight">{host}</p>
+                <p className="text-[0.6rem] font-bold uppercase tracking-[0.18em] text-primary mt-1">Main Host</p>
               </div>
             </div>
-            <p className="text-sm leading-6 text-on-surface-variant">Curating social experiences and keeping this gathering intentional.</p>
+            <p className="mt-4 text-xs leading-relaxed text-on-surface-variant">Curating social experiences and keeping this gathering intentional.</p>
             <Link
-              className="mt-5 inline-flex w-full items-center justify-center rounded-xl bg-surface-container-high px-4 py-3 text-sm font-semibold text-on-surface transition-colors hover:bg-surface-container-highest"
+              className="mt-4 inline-flex w-full items-center justify-center rounded-2xl bg-surface-container-high px-4 py-3 text-xs font-bold text-on-surface transition-colors hover:bg-surface-container-highest"
               href={`/profile/${event.creator.userId}`}
             >
               View Host Profile
             </Link>
           </section>
 
-          <section className="rounded-[1.7rem] bg-surface-container-low p-5">
-            <p className="mb-4 text-[0.58rem] font-bold uppercase tracking-[0.18em] text-on-surface-variant">Appointed Co-Hosts</p>
+          {/* Co-Hosts Card */}
+          <section className="rounded-3xl bg-surface-container/40 border border-white/[0.04] p-5">
+            <p className="mb-4 text-xs font-bold uppercase tracking-wider text-on-surface-variant/70">Appointed Co-Hosts</p>
             {coHosts.length ? (
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {coHosts.map((coHost) => (
-                  <div className="flex items-center gap-3 rounded-xl bg-surface-container px-3 py-2.5" key={coHost.name}>
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-surface-container-high text-xs font-black text-tertiary">
+                  <div className="flex items-center gap-3 rounded-2xl bg-surface-container-high/40 p-2.5" key={coHost.name}>
+                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-surface-container-high text-xs font-black text-tertiary">
                       {getInitials(coHost.name)}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-bold text-on-surface">{coHost.name}</p>
+                      <p className="truncate text-xs font-bold text-on-surface">{coHost.name}</p>
                     </div>
                     {coHost.userId ? (
                       <Link
@@ -595,19 +674,20 @@ export function EventDetailsPage({ token }: { token: string }) {
                 ))}
               </div>
             ) : (
-              <div className="rounded-xl bg-surface-container px-4 py-3 text-sm text-on-surface-variant">No co-host assigned.</div>
+              <div className="rounded-2xl bg-surface-container-high/20 p-4 text-xs text-on-surface-variant text-center">No co-host assigned.</div>
             )}
           </section>
 
-          <section className="rounded-[1.7rem] bg-surface-container p-5" title={formatDateRange(event.startTime, event.endTime)}>
-            <p className="mb-3 text-[0.58rem] font-bold uppercase tracking-[0.18em] text-on-surface-variant">The Spot</p>
-            <div className="overflow-hidden rounded-xl bg-surface-container-high">
-              <div className="h-56">
-                <iframe className="h-full w-full border-0 grayscale" loading="lazy" src={mapUrl} title="Event location map preview" />
+          {/* Spot Card (Map) */}
+          <section className="rounded-3xl bg-surface-container/40 border border-white/[0.04] p-5 space-y-4">
+            <p className="text-xs font-bold uppercase tracking-wider text-on-surface-variant/70">The Spot</p>
+            <div className="overflow-hidden rounded-2xl border border-white/[0.04] bg-surface-container-high">
+              <div className="h-48 relative grayscale contrast-125 brightness-90">
+                <iframe className="h-full w-full border-0" loading="lazy" src={mapUrl} title="Event location map preview" />
               </div>
             </div>
             <Link
-              className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-surface-container-high px-3 py-2.5 text-[0.72rem] font-bold text-on-surface transition-colors hover:bg-surface-container-highest"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-surface-container-high px-3 py-2.5 text-xs font-bold text-on-surface transition-colors hover:bg-surface-container-highest"
               href={googleMapsUrl}
               rel="noreferrer"
               target="_blank"
@@ -616,11 +696,12 @@ export function EventDetailsPage({ token }: { token: string }) {
               <ArrowUpRight className="h-3.5 w-3.5" />
             </Link>
           </section>
-        </aside>
+        </div>
       </div>
 
+      {/* API Errors */}
       {(approvedQuery.isError || (!isPastEvent && pendingQuery.isError)) && !eventQuery.isError ? (
-        <div className="mt-6 rounded-2xl bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+        <div className="mt-6 rounded-2xl bg-rose-500/10 px-4 py-3.5 text-xs text-rose-300">
           {approvedQuery.isError
             ? getApiErrorMessage(approvedQuery.error, "Unable to load approved participants.")
             : getApiErrorMessage(pendingQuery.error, "Unable to load waiting list.")}
@@ -628,13 +709,13 @@ export function EventDetailsPage({ token }: { token: string }) {
       ) : null}
 
       {requestJoinMutation.isError ? (
-        <div className="mt-6 rounded-2xl bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+        <div className="mt-6 rounded-2xl bg-rose-500/10 px-4 py-3.5 text-xs text-rose-300">
           {getApiErrorMessage(requestJoinMutation.error, "Unable to submit join request.")}
         </div>
       ) : null}
 
       {participantDecisionMutation.isError ? (
-        <div className="mt-6 rounded-2xl bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+        <div className="mt-6 rounded-2xl bg-rose-500/10 px-4 py-3.5 text-xs text-rose-300">
           {getApiErrorMessage(participantDecisionMutation.error, "Unable to update participant status.")}
         </div>
       ) : null}

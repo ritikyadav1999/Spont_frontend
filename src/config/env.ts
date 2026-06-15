@@ -1,4 +1,4 @@
-const DEVELOPMENT_API_BASE_URL = "http://localhost:8080/api";
+const DEVELOPMENT_API_BASE_URL = "http://localhost:8081/api";
 
 export const env = {
   apiBaseUrl:

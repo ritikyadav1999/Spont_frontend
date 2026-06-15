@@ -231,10 +231,6 @@ export function HostEventPage({ mode = "create", token, initialEvent = null }: H
 
   const activeMutation = mode === "edit" ? updateEventMutation : createEventMutation;
   const pageTitle = mode === "edit" ? "Edit Event Details" : "Host Experience";
-  const pageDescription =
-    mode === "edit"
-      ? "Update your event details, timing, access settings, and location before the next wave of guests arrives."
-      : "Design a moment. Fill out the details below to broadcast your spontaneous event to the community.";
   const submitLabel =
     mode === "edit"
       ? activeMutation.isPending
@@ -245,58 +241,57 @@ export function HostEventPage({ mode = "create", token, initialEvent = null }: H
         : "Publish Experience";
 
   return (
-    <div className="ui-page-shell ui-page-shell--narrow pb-20">
+    <div className="ui-page-shell ui-page-shell--narrow pb-32 lg:pb-12 max-w-2xl mx-auto px-4">
       <AppPageHeader
-        description={pageDescription}
         title={pageTitle}
       />
 
       <form className="space-y-6 pb-8" onSubmit={handleSubmit(onSubmit)}>
         <SectionCard icon={<Sparkles className="h-4 w-4" />} title="The Essentials">
-          <div className="space-y-5">
+          <div className="space-y-4">
             <div className="space-y-2">
-              <label className="ml-1 block text-sm font-medium text-on-surface-variant">Event Title</label>
+              <label className="ml-1 block text-xs font-bold uppercase tracking-wider text-on-surface-variant/80">Event Title</label>
               <input
                 className={cn(
-                  "w-full rounded-xl bg-surface-container-highest px-4 py-3.5 text-on-surface placeholder:text-on-surface-variant/40 focus:ring-1 focus:ring-primary/40 focus:outline-none",
-                  errors.title && "ring-1 ring-rose-400/50",
+                  "w-full rounded-2xl bg-surface-container-highest px-4 py-3.5 text-sm text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none border border-transparent focus:border-primary/20",
+                  errors.title && "border-rose-400/30",
                 )}
                 placeholder="Something catchy..."
                 type="text"
                 {...register("title")}
               />
-              {errors.title ? <p className="text-sm text-rose-300">{errors.title.message}</p> : null}
+              {errors.title ? <p className="text-xs text-rose-400 mt-1">{errors.title.message}</p> : null}
             </div>
 
             <div className="space-y-2">
-              <label className="ml-1 block text-sm font-medium text-on-surface-variant">Description</label>
+              <label className="ml-1 block text-xs font-bold uppercase tracking-wider text-on-surface-variant/80">Description</label>
               <textarea
                 className={cn(
-                  "min-h-28 w-full resize-none rounded-xl bg-surface-container-highest px-4 py-3.5 text-on-surface placeholder:text-on-surface-variant/40 focus:ring-1 focus:ring-primary/40 focus:outline-none",
-                  errors.description && "ring-1 ring-rose-400/50",
+                  "min-h-28 w-full resize-none rounded-2xl bg-surface-container-highest px-4 py-3.5 text-sm text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none border border-transparent focus:border-primary/20",
+                  errors.description && "border-rose-400/30",
                 )}
                 placeholder="What's the vibe? Mention any requirements or perks..."
                 {...register("description")}
               />
-              {errors.description ? <p className="text-sm text-rose-300">{errors.description.message}</p> : null}
+              {errors.description ? <p className="text-xs text-rose-400 mt-1">{errors.description.message}</p> : null}
             </div>
           </div>
         </SectionCard>
 
         <SectionCard icon={<ImageIcon className="h-4 w-4" />} title="Event Visuals">
-          <div className="space-y-3">
-            <label className="ml-1 block text-sm font-medium text-on-surface-variant">Cover Photo</label>
-            <label className="block cursor-pointer rounded-[1.35rem] border border-dashed border-white/10 bg-surface-container-low px-6 py-12 text-center transition-colors hover:border-primary/40 hover:bg-primary/5">
+          <div className="space-y-2">
+            <label className="ml-1 block text-xs font-bold uppercase tracking-wider text-on-surface-variant/80">Cover Photo</label>
+            <label className="block cursor-pointer rounded-2xl border border-dashed border-white/10 bg-surface-container-low/60 px-4 py-8 text-center transition-all hover:border-primary/30 hover:bg-primary/5 active:scale-[0.99]">
               <input
                 accept="image/*"
                 className="hidden"
                 type="file"
                 onChange={(event) => setCoverFileName(event.target.files?.[0]?.name ?? null)}
               />
-              <CloudUpload className="mx-auto h-10 w-10 text-on-surface-variant" />
-              <p className="mt-4 text-base font-semibold text-on-surface">Drag & drop your cover image</p>
-              <p className="mt-1 text-sm text-on-surface-variant">PNG, JPG or WEBP (UI ready, backend pending)</p>
-              <span className="mt-4 inline-flex rounded-full bg-surface-container-high px-5 py-2 text-xs font-bold text-on-surface">
+              <CloudUpload className="mx-auto h-8 w-8 text-primary/85 animate-pulse" />
+              <p className="mt-3 text-sm font-semibold text-on-surface">Choose cover image</p>
+              <p className="mt-0.5 text-xs text-on-surface-variant/70">PNG, JPG or WEBP (UI ready)</p>
+              <span className="mt-3 inline-flex rounded-full bg-surface-container-high border border-white/[0.04] px-4 py-1.5 text-xs font-bold text-on-surface-variant">
                 {coverFileName ? coverFileName : "Browse Files"}
               </span>
             </label>
@@ -304,33 +299,30 @@ export function HostEventPage({ mode = "create", token, initialEvent = null }: H
         </SectionCard>
 
         <SectionCard icon={<TimerReset className="h-4 w-4" />} title="Logistics">
-          <div className="space-y-8">
-            <div className="grid gap-7 lg:grid-cols-2">
-              <div className="space-y-4">
-                <h4 className="ml-1 text-[0.7rem] font-bold uppercase tracking-[0.18em] text-primary/80">Start</h4>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="ml-1 block text-[0.62rem] font-bold uppercase tracking-[0.16em] text-on-surface-variant">
-                      Date
-                    </label>
+          <div className="space-y-6">
+            <div className="grid gap-5 sm:grid-cols-2">
+              {/* Start Date & Time */}
+              <div className="space-y-3">
+                <h4 className="ml-1 text-[0.62rem] font-bold uppercase tracking-wider text-primary">Start Details</h4>
+                <div className="grid grid-cols-2 gap-3.5">
+                  <div className={cn(
+                    "bg-surface-container-highest/60 rounded-2xl px-4 py-3 border border-transparent transition-all focus-within:border-primary/20",
+                    errors.startDate && "border-rose-400/30"
+                  )}>
+                    <label className="block text-[0.62rem] font-bold uppercase tracking-wider text-on-surface-variant/80">Date</label>
                     <input
-                      className={cn(
-                        "w-full rounded-xl bg-surface-container-highest px-4 py-3.5 text-on-surface focus:ring-1 focus:ring-primary/40 focus:outline-none",
-                        errors.startDate && "ring-1 ring-rose-400/50",
-                      )}
+                      className="w-full bg-transparent text-sm text-on-surface focus:outline-none mt-1"
                       type="date"
                       {...register("startDate")}
                     />
                   </div>
-                  <div className="space-y-2">
-                    <label className="ml-1 block text-[0.62rem] font-bold uppercase tracking-[0.16em] text-on-surface-variant">
-                      Time
-                    </label>
+                  <div className={cn(
+                    "bg-surface-container-highest/60 rounded-2xl px-4 py-3 border border-transparent transition-all focus-within:border-primary/20",
+                    errors.startTime && "border-rose-400/30"
+                  )}>
+                    <label className="block text-[0.62rem] font-bold uppercase tracking-wider text-on-surface-variant/80">Time</label>
                     <input
-                      className={cn(
-                        "w-full rounded-xl bg-surface-container-highest px-4 py-3.5 text-on-surface focus:ring-1 focus:ring-primary/40 focus:outline-none",
-                        errors.startTime && "ring-1 ring-rose-400/50",
-                      )}
+                      className="w-full bg-transparent text-sm text-on-surface focus:outline-none mt-1"
                       type="time"
                       {...register("startTime")}
                     />
@@ -338,64 +330,60 @@ export function HostEventPage({ mode = "create", token, initialEvent = null }: H
                 </div>
               </div>
 
-              <div className="space-y-4">
-                <h4 className="ml-1 text-[0.7rem] font-bold uppercase tracking-[0.18em] text-on-surface-variant">End</h4>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="ml-1 block text-[0.62rem] font-bold uppercase tracking-[0.16em] text-on-surface-variant">
-                      Date
-                    </label>
+              {/* End Date & Time */}
+              <div className="space-y-3">
+                <h4 className="ml-1 text-[0.62rem] font-bold uppercase tracking-wider text-on-surface-variant/80">End Details</h4>
+                <div className="grid grid-cols-2 gap-3.5">
+                  <div className={cn(
+                    "bg-surface-container-highest/60 rounded-2xl px-4 py-3 border border-transparent transition-all focus-within:border-primary/20",
+                    errors.endDate && "border-rose-400/30"
+                  )}>
+                    <label className="block text-[0.62rem] font-bold uppercase tracking-wider text-on-surface-variant/80">Date</label>
                     <input
-                      className={cn(
-                        "w-full rounded-xl bg-surface-container-highest px-4 py-3.5 text-on-surface focus:ring-1 focus:ring-primary/40 focus:outline-none",
-                        errors.endDate && "ring-1 ring-rose-400/50",
-                      )}
+                      className="w-full bg-transparent text-sm text-on-surface focus:outline-none mt-1"
                       type="date"
                       {...register("endDate")}
                     />
                   </div>
-                  <div className="space-y-2">
-                    <label className="ml-1 block text-[0.62rem] font-bold uppercase tracking-[0.16em] text-on-surface-variant">
-                      Time
-                    </label>
+                  <div className={cn(
+                    "bg-surface-container-highest/60 rounded-2xl px-4 py-3 border border-transparent transition-all focus-within:border-primary/20",
+                    errors.endTime && "border-rose-400/30"
+                  )}>
+                    <label className="block text-[0.62rem] font-bold uppercase tracking-wider text-on-surface-variant/80">Time</label>
                     <input
-                      className={cn(
-                        "w-full rounded-xl bg-surface-container-highest px-4 py-3.5 text-on-surface focus:ring-1 focus:ring-primary/40 focus:outline-none",
-                        errors.endTime && "ring-1 ring-rose-400/50",
-                      )}
+                      className="w-full bg-transparent text-sm text-on-surface focus:outline-none mt-1"
                       type="time"
                       {...register("endTime")}
                     />
                   </div>
                 </div>
-                {errors.endTime ? <p className="text-sm text-rose-300">{errors.endTime.message}</p> : null}
+                {errors.endTime ? <p className="text-xs text-rose-400 mt-1">{errors.endTime.message}</p> : null}
               </div>
             </div>
 
-            <div className="grid gap-4 lg:grid-cols-[1fr_auto]">
-              <div className="space-y-2">
-                <label className="ml-1 block text-sm font-medium text-on-surface-variant">Location Search</label>
-                <div className="relative">
-                  <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-on-surface-variant" />
+            <div className="space-y-2">
+              <label className="ml-1 block text-sm font-medium text-on-surface-variant">Location Search</label>
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-on-surface-variant/60" />
                   <input
                     className={cn(
-                      "w-full rounded-xl bg-surface-container-highest px-12 py-3.5 text-on-surface placeholder:text-on-surface-variant/40 focus:ring-1 focus:ring-primary/40 focus:outline-none",
-                      errors.locationName && "ring-1 ring-rose-400/50",
+                      "w-full rounded-2xl bg-surface-container-highest px-11 py-3.5 text-sm text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none border border-transparent focus:border-primary/20",
+                      errors.locationName && "border-rose-400/30",
                     )}
                     placeholder="Enter venue or street address"
                     type="text"
                     {...register("locationQuery")}
                   />
                 </div>
+                <button
+                  className="rounded-2xl bg-surface-container-high px-5 py-3.5 text-xs font-bold text-on-surface transition-colors hover:bg-surface-container-highest active:scale-[0.98] shrink-0"
+                  onClick={handleLocationSearch}
+                  type="button"
+                >
+                  {isSearchingLocation ? "..." : "Search"}
+                </button>
               </div>
-
-              <button
-                className="mt-7 rounded-full bg-surface-container-high px-6 py-3 text-sm font-bold text-on-surface transition-colors hover:bg-surface-container-highest"
-                onClick={handleLocationSearch}
-                type="button"
-              >
-                {isSearchingLocation ? "Searching..." : "Search Place"}
-              </button>
             </div>
 
             {searchResults.length ? (
@@ -413,45 +401,38 @@ export function HostEventPage({ mode = "create", token, initialEvent = null }: H
               </div>
             ) : null}
 
-            {locationError ? <p className="text-sm text-rose-300">{locationError}</p> : null}
-            {errors.locationName ? <p className="text-sm text-rose-300">{errors.locationName.message}</p> : null}
+            {locationError ? <p className="text-xs text-rose-400">{locationError}</p> : null}
+            {errors.locationName ? <p className="text-xs text-rose-400">{errors.locationName.message}</p> : null}
 
-            <div className="overflow-hidden rounded-[1.35rem] bg-surface-container-highest">
-              <div className="flex items-center justify-between px-4 py-3 text-xs font-semibold uppercase tracking-[0.18em] text-on-surface-variant">
-                <span>{selectedLocation || "Map preview"}</span>
-                {selectedLocation ? <span>{latitude.toFixed(4)}, {longitude.toFixed(4)}</span> : null}
+            <div className="overflow-hidden rounded-2xl border border-white/[0.04] bg-surface-container-highest/40">
+              <div className="flex items-center justify-between px-4 py-3 text-[0.62rem] font-bold uppercase tracking-wider text-on-surface-variant/80 border-b border-white/[0.03]">
+                <span className="truncate max-w-[70%]">{selectedLocation || "Map preview"}</span>
+                {selectedLocation ? <span className="shrink-0">{latitude.toFixed(4)}, {longitude.toFixed(4)}</span> : null}
               </div>
-              <div className="h-72 bg-surface-container-low">
-                <iframe className="h-full w-full border-0 grayscale" loading="lazy" src={mapUrl} title="Location map preview" />
+              <div className="h-48 bg-surface-container-low relative grayscale contrast-125 brightness-90">
+                <iframe className="h-full w-full border-0" loading="lazy" src={mapUrl} title="Location map preview" />
               </div>
             </div>
 
-            <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_12rem_12rem]">
-              <div className="rounded-2xl bg-surface-container-high p-5">
-                <label className="block text-sm font-medium text-on-surface-variant">Capacity</label>
-                <input
-                  className="mt-4 h-2 w-full cursor-pointer appearance-none rounded-full bg-surface-container-highest accent-primary"
-                  max={CAPACITY_MAX}
-                  min={CAPACITY_MIN}
-                  step={1}
-                  type="range"
-                  {...register("maxParticipants", { valueAsNumber: true })}
-                />
-                <div className="mt-4 flex items-center justify-between rounded-xl bg-primary/10 px-3 py-3">
+            <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_12rem_12rem]">
+              {/* Capacity Range Slider */}
+              <div className="rounded-2xl bg-surface-container-high/60 border border-white/[0.03] p-4">
+                <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant/80">Capacity</label>
+                <div className="mt-4 flex items-center justify-between rounded-xl bg-primary/5 border border-primary/10 px-4 py-2">
                   <button
-                    className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-surface-container-high text-base font-black text-on-surface transition-colors hover:bg-surface-container-highest disabled:cursor-not-allowed disabled:opacity-50"
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-surface-container-high text-base font-bold text-on-surface transition-colors hover:bg-surface-container-highest active:scale-95 disabled:opacity-50"
                     disabled={maxParticipants <= CAPACITY_MIN}
                     onClick={() => updateCapacity(maxParticipants - 1)}
                     type="button"
                   >
                     -
                   </button>
-                  <div className="min-w-[4.5rem] text-center">
-                    <div className="font-headline text-2xl font-black text-primary">{maxParticipants}</div>
-                    <div className="text-[0.62rem] font-bold uppercase tracking-[0.18em] text-on-surface-variant">Spots</div>
+                  <div className="text-center">
+                    <span className="font-headline text-2xl font-black text-primary">{maxParticipants}</span>
+                    <span className="text-[0.6rem] font-bold uppercase tracking-wider text-on-surface-variant/70 ml-1.5">Spots</span>
                   </div>
                   <button
-                    className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-surface-container-high text-base font-black text-on-surface transition-colors hover:bg-surface-container-highest disabled:cursor-not-allowed disabled:opacity-50"
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-surface-container-high text-base font-bold text-on-surface transition-colors hover:bg-surface-container-highest active:scale-95 disabled:opacity-50"
                     disabled={maxParticipants >= CAPACITY_MAX}
                     onClick={() => updateCapacity(maxParticipants + 1)}
                     type="button"
@@ -459,20 +440,29 @@ export function HostEventPage({ mode = "create", token, initialEvent = null }: H
                     +
                   </button>
                 </div>
+                <input
+                  className="mt-4 h-1 w-full cursor-pointer appearance-none rounded-full bg-surface-container-highest accent-primary"
+                  max={CAPACITY_MAX}
+                  min={CAPACITY_MIN}
+                  step={1}
+                  type="range"
+                  {...register("maxParticipants", { valueAsNumber: true })}
+                />
               </div>
 
-              <div className="rounded-2xl bg-surface-container-high p-4">
-                <label className="mb-2 ml-1 block text-[0.62rem] font-bold uppercase tracking-[0.16em] text-on-surface-variant">
+              {/* Segment Controller: Join Mode */}
+              <div className="rounded-2xl bg-surface-container-high/60 border border-white/[0.03] p-4 flex flex-col justify-between">
+                <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant/80 mb-3">
                   Join Mode
                 </label>
-                <div className="grid gap-2">
+                <div className="flex rounded-xl bg-surface-container-highest p-1 border border-white/[0.03]">
                   {joinModeOptions.map((option) => (
                     <button
                       className={cn(
-                        "rounded-full px-4 py-2.5 text-sm font-semibold transition-colors",
+                        "flex-1 rounded-lg py-2 text-xs font-bold transition-all text-center",
                         joinMode === option.value
-                          ? "bg-primary/15 text-primary"
-                          : "bg-surface-container-highest text-on-surface-variant hover:bg-surface-container",
+                          ? "bg-primary text-[#480d00] shadow-sm font-black"
+                          : "text-on-surface-variant hover:text-on-surface",
                       )}
                       key={option.value}
                       onClick={() => setValue("joinMode", option.value, { shouldValidate: true })}
@@ -484,18 +474,19 @@ export function HostEventPage({ mode = "create", token, initialEvent = null }: H
                 </div>
               </div>
 
-              <div className="rounded-2xl bg-surface-container-high p-4">
-                <label className="mb-2 ml-1 block text-[0.62rem] font-bold uppercase tracking-[0.16em] text-on-surface-variant">
+              {/* Segment Controller: Visibility */}
+              <div className="rounded-2xl bg-surface-container-high/60 border border-white/[0.03] p-4 flex flex-col justify-between">
+                <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant/80 mb-3">
                   Visibility
                 </label>
-                <div className="grid gap-2">
+                <div className="flex rounded-xl bg-surface-container-highest p-1 border border-white/[0.03]">
                   {visibilityOptions.map((option) => (
                     <button
                       className={cn(
-                        "rounded-full px-4 py-2.5 text-sm font-semibold transition-colors",
+                        "flex-1 rounded-lg py-2 text-xs font-bold transition-all text-center",
                         visibility === option.value
-                          ? "bg-primary/15 text-primary"
-                          : "bg-surface-container-highest text-on-surface-variant hover:bg-surface-container",
+                          ? "bg-primary text-[#480d00] shadow-sm font-black"
+                          : "text-on-surface-variant hover:text-on-surface",
                       )}
                       key={option.value}
                       onClick={() => setValue("visibility", option.value, { shouldValidate: true })}
@@ -511,19 +502,32 @@ export function HostEventPage({ mode = "create", token, initialEvent = null }: H
         </SectionCard>
 
         {activeMutation.isError ? (
-          <p className="rounded-2xl bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+          <p className="rounded-2xl bg-rose-500/10 px-4 py-3 text-xs text-rose-300">
             {getApiErrorMessage(activeMutation.error)}
           </p>
         ) : null}
 
+        {/* Desktop Submit Button */}
         <button
-          className="flex w-full items-center justify-center gap-3 rounded-full bg-primary-container px-6 py-5 font-headline text-lg font-extrabold text-on-primary-container transition-transform hover:scale-[1.01] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
+          className="hidden lg:flex w-full items-center justify-center gap-2.5 rounded-2xl bg-primary py-4 font-headline text-sm font-extrabold text-[#480d00] transition-transform hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60"
           disabled={activeMutation.isPending}
           type="submit"
         >
           <span>{submitLabel}</span>
-          <Rocket className="h-5 w-5" />
+          <Rocket className="h-4 w-4" />
         </button>
+
+        {/* Sticky Submit Button for Mobile View */}
+        <div className="fixed bottom-[calc(3.4rem+env(safe-area-inset-bottom))] left-0 right-0 z-40 px-4 py-3 bg-gradient-to-t from-background via-background/95 to-transparent border-t border-white/[0.04] lg:hidden">
+          <button
+            className="w-full flex items-center justify-center gap-2.5 rounded-2xl bg-primary py-3.5 text-xs font-extrabold text-[#480d00] transition-transform active:scale-[0.98] disabled:opacity-50"
+            disabled={activeMutation.isPending}
+            type="submit"
+          >
+            <span>{submitLabel}</span>
+            <Rocket className="h-4 w-4" />
+          </button>
+        </div>
       </form>
     </div>
   );
