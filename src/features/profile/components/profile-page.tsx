@@ -9,7 +9,6 @@ import type { PastEventSummary } from "@/features/events/types/event.types";
 import { usePublicProfile } from "@/features/profile/hooks/use-profile";
 import { ExperienceCard } from "@/features/profile/components/experience-card";
 import { ExperienceFeatureCard } from "@/features/profile/components/experience-feature-card";
-import { PushNotificationSettingsCard } from "@/features/notifications/components/push-notification-settings-card";
 import type { PublicProfile } from "@/features/profile/types/public-profile.types";
 import type { ProfileExperience } from "@/features/profile/types/profile.types";
 import { getApiErrorMessage } from "@/lib/utils/api-response";
@@ -98,11 +97,74 @@ export function ProfilePage({ userId }: ProfilePageProps) {
   return (
     <div className="ui-page-shell pb-14">
       <AppPageHeader
+        className="hidden md:block"
         description={isPublicProfile ? "A closer look at this host's rhythm, presence, and archive." : "Your identity and event archive in one place."}
         title="Profile"
       />
 
-      <section className="flex flex-col gap-8 xl:flex-row xl:items-start xl:gap-12">
+      {/* Mobile Profile Card View */}
+      <div className="block md:hidden space-y-6">
+        <div className="relative rounded-[2rem] bg-surface-container/60 border border-white/[0.04] p-5 shadow-sm">
+          {/* Background decorative glow */}
+          <div className="absolute -inset-1.5 rounded-[2rem] bg-[linear-gradient(145deg,rgba(255,143,112,0.1),rgba(190,190,255,0.06))] blur-xl -z-10 pointer-events-none" />
+          
+          <div className="flex items-center gap-4.5">
+            {/* Avatar */}
+            <div className="relative shrink-0">
+              <div className="absolute -inset-1 rounded-full bg-gradient-to-tr from-primary/30 to-tertiary/20 blur-md -z-10 pointer-events-none" />
+              <div className="relative flex h-22 w-22 items-center justify-center overflow-hidden rounded-full bg-[radial-gradient(circle_at_50%_20%,rgba(255,255,255,0.22),transparent_24%),linear-gradient(145deg,#17202b,#27384d_48%,#10161f)] ring-2 ring-primary/20">
+                <span className="font-headline text-3xl font-black tracking-tight text-white/92">{getInitials(name)}</span>
+              </div>
+            </div>
+
+            {/* Profile Info */}
+            <div className="min-w-0 flex-1">
+              <h2 className="font-headline text-2xl font-black tracking-tight text-on-surface leading-tight truncate">{name}</h2>
+              {selectedProfile?.email && (
+                <p className="text-[0.75rem] text-on-surface-variant/80 truncate mt-1">{selectedProfile.email}</p>
+              )}
+              {selectedProfile?.phone && (
+                <p className="text-[0.75rem] text-on-surface-variant/80 truncate mt-0.5">{selectedProfile.phone}</p>
+              )}
+              {selectedProfile?.gender && (
+                <span className="inline-flex mt-2.5 rounded-full bg-primary/10 border border-primary/20 px-2.5 py-0.5 text-[0.58rem] font-bold uppercase tracking-wider text-primary">
+                  {selectedProfile.gender}
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Stats Bar */}
+          {!isPublicProfile && (
+            <div className="flex items-center justify-center border-t border-white/[0.04] pt-3.5 mt-5 text-center">
+              <div>
+                <p className="font-headline text-xl font-black text-primary leading-tight">{experienceItems.length}</p>
+                <p className="text-[0.55rem] font-bold uppercase tracking-wider text-on-surface-variant/70 mt-0.5">Past Experiences</p>
+              </div>
+            </div>
+          )}
+
+          {/* Action Buttons */}
+          <div className="flex gap-2.5 mt-5">
+            <button
+              className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-primary py-3 text-xs font-bold text-on-primary-container transition-transform active:scale-[0.98]"
+              type="button"
+            >
+              <SquarePen className="h-3.5 w-3.5" />
+              {isPublicProfile ? "Follow Profile" : "Edit Profile"}
+            </button>
+            <button
+              className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-surface-container-high text-on-surface transition-colors active:bg-surface-container-highest"
+              type="button"
+            >
+              <Share2 className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Desktop Profile Section (Hidden on mobile) */}
+      <section className="hidden md:flex flex-col gap-8 xl:flex-row xl:items-start xl:gap-12">
         <div className="relative shrink-0">
           <div className="absolute -inset-2 rounded-full bg-[linear-gradient(145deg,rgba(255,143,112,0.26),rgba(190,190,255,0.16))] blur-2xl" />
           <div className="relative flex h-40 w-40 items-center justify-center overflow-hidden rounded-full bg-[radial-gradient(circle_at_50%_20%,rgba(255,255,255,0.22),transparent_24%),linear-gradient(145deg,#17202b,#27384d_48%,#10161f)] ring-4 ring-surface md:h-48 md:w-48">
@@ -115,6 +177,13 @@ export function ProfilePage({ userId }: ProfilePageProps) {
             <h1 className="font-headline text-5xl font-extrabold leading-[0.92] tracking-[-0.05em] text-on-surface xl:text-[5rem]">
               {name}
             </h1>
+            {!isPublicProfile && (
+              <div className="flex gap-4 mt-4 text-xs text-on-surface-variant">
+                {selectedProfile?.email && <span>{selectedProfile.email}</span>}
+                {selectedProfile?.phone && <span>{selectedProfile.phone}</span>}
+                {selectedProfile?.gender && <span className="capitalize">{selectedProfile.gender}</span>}
+              </div>
+            )}
           </div>
         </div>
 
@@ -136,15 +205,10 @@ export function ProfilePage({ userId }: ProfilePageProps) {
         </div>
       </section>
 
-      <section className="mt-20">
-        {!isPublicProfile ? (
-          <div className="mb-10">
-            <PushNotificationSettingsCard />
-          </div>
-        ) : null}
+      <section className="mt-10 md:mt-16">
 
         <div className="mb-8 flex items-baseline justify-between gap-4">
-          <h2 className="font-headline text-3xl font-bold tracking-tight text-on-surface">Past Experiences</h2>
+          <h2 className="font-headline text-2xl md:text-3xl font-bold tracking-tight text-on-surface">Past Experiences</h2>
           {!isPublicProfile ? (
             <span className="text-[0.82rem] font-medium text-on-surface-variant">Viewing {experienceItems.length} past events</span>
           ) : null}
