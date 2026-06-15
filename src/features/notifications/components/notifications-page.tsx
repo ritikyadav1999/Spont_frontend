@@ -73,58 +73,116 @@ function NotificationRow({
   isPending: boolean;
 }) {
   return (
-    <div
-      className={cn(
-        "group relative flex items-center gap-5 rounded-[1.35rem] px-6 py-5 transition-colors",
-        notification.read ? "bg-surface-container-low hover:bg-surface-container" : "bg-surface-container hover:bg-surface-container-high",
-      )}
-    >
-      {!notification.read ? (
-        <div className="absolute left-0 top-1/2 h-12 w-1 -translate-y-1/2 rounded-r-full bg-primary shadow-[0_0_15px_rgba(255,143,112,0.45)]" />
-      ) : null}
-
+    <>
+      {/* Mobile view */}
       <div
         className={cn(
-          "flex h-14 w-14 shrink-0 items-center justify-center rounded-xl",
-          notification.read ? "bg-surface-container-high text-on-surface-variant" : "bg-primary/12 text-primary",
+          "flex md:hidden relative items-start gap-3 rounded-[1.2rem] p-4 transition-colors",
+          notification.read ? "bg-surface-container-low" : "bg-surface-container border border-white/[0.03] shadow-sm",
         )}
       >
-        {iconByTitle(notification)}
-      </div>
+        {!notification.read ? (
+          <div className="absolute left-0 top-1/2 h-8 w-1 -translate-y-1/2 rounded-r-full bg-primary shadow-[0_0_12px_rgba(255,143,112,0.45)]" />
+        ) : null}
 
-      <div className="min-w-0 flex-1">
-        <p className={cn("leading-relaxed", notification.read ? "text-on-surface-variant" : "text-on-surface")}>
-          {notification.actorName ? <span className="font-bold text-primary">{notification.actorName}</span> : null}
-          {notification.actorName ? " " : null}
-          <span className="font-semibold text-on-surface">{notification.title}</span>
-          {notification.message ? <span className="text-on-surface-variant"> {notification.message}</span> : null}
-        </p>
-        <div className="mt-2 flex items-center gap-2 text-xs text-on-surface-variant">
-          <Clock3 className="h-3 w-3" />
-          <span>{formatTime(notification.createdAt)}</span>
+        <div
+          className={cn(
+            "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl",
+            notification.read ? "bg-surface-container-high text-on-surface-variant" : "bg-primary/10 text-primary",
+          )}
+        >
+          {iconByTitle(notification)}
+        </div>
+
+        <div className="min-w-0 flex-1">
+          <p className={cn("text-xs leading-relaxed", notification.read ? "text-on-surface-variant/80" : "text-on-surface font-medium")}>
+            {notification.actorName ? <span className="font-bold text-primary">{notification.actorName}</span> : null}
+            {notification.actorName ? " " : null}
+            <span className="font-bold text-on-surface">{notification.title}</span>
+            {notification.message ? <span className="text-on-surface-variant"> {notification.message}</span> : null}
+          </p>
+          <div className="mt-2.5 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-1 text-[0.62rem] text-on-surface-variant">
+              <Clock3 className="h-2.5 w-2.5" />
+              <span>{formatTime(notification.createdAt)}</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              {notification.eventToken ? (
+                <button
+                  className="inline-flex items-center gap-1 rounded-lg bg-primary/10 px-2.5 py-1.5 text-[0.62rem] font-bold text-primary active:scale-95 transition-transform"
+                  onClick={() => onOpenEvent(notification.eventToken as string)}
+                  type="button"
+                >
+                  Event
+                </button>
+              ) : null}
+              <button
+                className="inline-flex items-center gap-1 rounded-lg bg-surface-container-high px-2.5 py-1.5 text-[0.62rem] font-bold text-on-surface active:scale-95 transition-transform disabled:opacity-50"
+                disabled={notification.read || isPending}
+                onClick={() => onMarkRead(notification.id)}
+                type="button"
+              >
+                {notification.read ? "Read" : isPending ? "..." : "Mark Read"}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="flex items-center gap-2">
-        {notification.eventToken ? (
+      {/* Desktop view */}
+      <div
+        className={cn(
+          "hidden md:flex relative items-center gap-5 rounded-[1.35rem] px-6 py-5 transition-colors",
+          notification.read ? "bg-surface-container-low hover:bg-surface-container" : "bg-surface-container hover:bg-surface-container-high",
+        )}
+      >
+        {!notification.read ? (
+          <div className="absolute left-0 top-1/2 h-12 w-1 -translate-y-1/2 rounded-r-full bg-primary shadow-[0_0_15px_rgba(255,143,112,0.45)]" />
+        ) : null}
+
+        <div
+          className={cn(
+            "flex h-14 w-14 shrink-0 items-center justify-center rounded-xl",
+            notification.read ? "bg-surface-container-high text-on-surface-variant" : "bg-primary/12 text-primary",
+          )}
+        >
+          {iconByTitle(notification)}
+        </div>
+
+        <div className="min-w-0 flex-1">
+          <p className={cn("leading-relaxed", notification.read ? "text-on-surface-variant" : "text-on-surface")}>
+            {notification.actorName ? <span className="font-bold text-primary">{notification.actorName}</span> : null}
+            {notification.actorName ? " " : null}
+            <span className="font-semibold text-on-surface">{notification.title}</span>
+            {notification.message ? <span className="text-on-surface-variant"> {notification.message}</span> : null}
+          </p>
+          <div className="mt-2 flex items-center gap-2 text-xs text-on-surface-variant">
+            <Clock3 className="h-3 w-3" />
+            <span>{formatTime(notification.createdAt)}</span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {notification.eventToken ? (
+            <button
+              className="inline-flex items-center gap-2 rounded-full bg-primary/12 px-4 py-2 text-xs font-bold text-primary transition-colors hover:bg-primary/20"
+              onClick={() => onOpenEvent(notification.eventToken as string)}
+              type="button"
+            >
+              Event
+            </button>
+          ) : null}
           <button
-            className="inline-flex items-center gap-2 rounded-full bg-primary/12 px-4 py-2 text-xs font-bold text-primary transition-colors hover:bg-primary/20"
-            onClick={() => onOpenEvent(notification.eventToken as string)}
+            className="inline-flex items-center gap-2 rounded-full bg-surface-container-high px-4 py-2 text-xs font-bold text-on-surface transition-colors hover:bg-primary hover:text-on-primary-container disabled:opacity-60"
+            disabled={notification.read || isPending}
+            onClick={() => onMarkRead(notification.id)}
             type="button"
           >
-            Event
+            {notification.read ? "Read" : isPending ? "Saving..." : "Mark Read"}
           </button>
-        ) : null}
-        <button
-          className="inline-flex items-center gap-2 rounded-full bg-surface-container-high px-4 py-2 text-xs font-bold text-on-surface transition-colors hover:bg-primary hover:text-on-primary-container disabled:opacity-60"
-          disabled={notification.read || isPending}
-          onClick={() => onMarkRead(notification.id)}
-          type="button"
-        >
-          {notification.read ? "Read" : isPending ? "Saving..." : "Mark Read"}
-        </button>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 
@@ -162,7 +220,29 @@ export function NotificationsPage() {
 
   return (
     <div className="ui-page-shell ui-page-shell--narrow">
+      {/* Mobile-first Header */}
+      <div className="flex md:hidden items-center justify-between mb-5">
+        <div className="flex items-center gap-2.5">
+          <h1 className="font-headline text-2xl font-black tracking-tight text-on-surface">Notifications</h1>
+          {unreadCount > 0 ? (
+            <span className="rounded-full bg-primary/10 border border-primary/20 px-2 py-0.5 text-[0.62rem] font-bold text-primary">
+              {unreadCount}
+            </span>
+          ) : null}
+        </div>
+        <button
+          className="inline-flex items-center gap-1.5 text-xs font-bold text-primary active:opacity-75 disabled:opacity-50"
+          disabled={!unreadCount || markReadMutation.isPending}
+          onClick={handleMarkAllRead}
+          type="button"
+        >
+          <CheckCheck className="h-4 w-4" />
+          Mark all read
+        </button>
+      </div>
+
       <AppPageHeader
+        className="hidden md:block"
         actions={
           <button
             className="inline-flex items-center gap-2 text-sm font-semibold text-tertiary transition-colors hover:text-primary disabled:opacity-50"
@@ -204,7 +284,7 @@ export function NotificationsPage() {
 
       {!notificationsQuery.isLoading && !notificationsQuery.isError ? (
         <>
-          <div className="space-y-14">
+          <div className="space-y-8 md:space-y-14">
             {(Object.keys(groupedNotifications) as Array<keyof typeof groupedNotifications>).map((groupKey) => {
               const items = groupedNotifications[groupKey];
 
@@ -214,7 +294,7 @@ export function NotificationsPage() {
 
               return (
                 <section key={groupKey}>
-                  <h2 className="mb-7 flex items-center gap-4 text-[0.72rem] font-black uppercase tracking-[0.28em] text-on-surface-variant">
+                  <h2 className="mb-4 md:mb-7 flex items-center gap-4 text-[0.72rem] font-black uppercase tracking-[0.28em] text-on-surface-variant">
                     {sectionLabels[groupKey]}
                     <div className="h-px flex-1 bg-white/8" />
                   </h2>
