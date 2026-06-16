@@ -1,9 +1,9 @@
 "use client";
 
-import { Share2, SquarePen } from "lucide-react";
+import { LogOut, Share2, SquarePen } from "lucide-react";
 import { useMemo } from "react";
 import { AppPageHeader } from "@/components/layout/app-page-header";
-import { useAuth } from "@/features/auth/hooks/use-auth";
+import { useAuth, useLogout } from "@/features/auth/hooks/use-auth";
 import { useMyPastEvents } from "@/features/events/hooks/use-events";
 import type { PastEventSummary } from "@/features/events/types/event.types";
 import { usePublicProfile } from "@/features/profile/hooks/use-profile";
@@ -53,6 +53,7 @@ type ProfilePageProps = {
 
 export function ProfilePage({ userId }: ProfilePageProps) {
   const { user } = useAuth();
+  const logoutMutation = useLogout();
   const isPublicProfile = Boolean(userId);
   const publicProfileQuery = usePublicProfile(userId ?? "");
   const myPastEventsQuery = useMyPastEvents(!isPublicProfile);
@@ -159,6 +160,17 @@ export function ProfilePage({ userId }: ProfilePageProps) {
             >
               <Share2 className="h-3.5 w-3.5" />
             </button>
+            {!isPublicProfile && (
+              <button
+                className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-rose-500/10 text-rose-400 transition-colors active:bg-rose-500/20 disabled:opacity-50"
+                disabled={logoutMutation.isPending}
+                onClick={() => logoutMutation.mutate()}
+                type="button"
+                aria-label="Log out"
+              >
+                <LogOut className="h-3.5 w-3.5" />
+              </button>
+            )}
           </div>
         </div>
       </div>

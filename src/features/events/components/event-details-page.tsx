@@ -139,15 +139,15 @@ export function EventDetailsPage({ token }: { token: string }) {
   );
   const isHostView = Boolean(
     currentUserId &&
-      ((event?.creator.userId && currentUserId === event.creator.userId) ||
-        approvedParticipants.some((participant) => participant.userId === currentUserId && participant.role === "HOST")),
+    ((event?.creator.userId && currentUserId === event.creator.userId) ||
+      approvedParticipants.some((participant) => participant.userId === currentUserId && participant.role === "HOST")),
   );
   const isCoHostView = Boolean(
     currentUserId &&
-      approvedParticipants.some(
-        (participant) =>
-          participant.userId === currentUserId && (participant.role === "CO_HOST" || participant.role === "COHOST"),
-      ),
+    approvedParticipants.some(
+      (participant) =>
+        participant.userId === currentUserId && (participant.role === "CO_HOST" || participant.role === "COHOST"),
+    ),
   );
   const canModeratePending = (isHostView || isCoHostView) && event?.status === "SCHEDULED" && !isPastEvent;
   const canModerateApproved = canModeratePending;
@@ -319,7 +319,7 @@ export function EventDetailsPage({ token }: { token: string }) {
             {/* Visual background using premium styling */}
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,143,112,0.18),transparent_40%),radial-gradient(circle_at_80%_30%,rgba(123,134,255,0.15),transparent_40%),radial-gradient(circle_at_50%_80%,rgba(120,214,191,0.12),transparent_40%)]" />
             <div className="absolute inset-0 bg-gradient-to-t from-[#0e0e0e] via-transparent to-transparent" />
-            
+
             {/* Overlaid badges */}
             <div className="absolute bottom-4 left-4 flex flex-wrap gap-2">
               <span className="rounded-full bg-[#0e0e0e]/60 backdrop-blur-md border border-white/[0.08] px-3 py-1 text-[0.62rem] font-bold uppercase tracking-wider text-primary">
@@ -410,6 +410,29 @@ export function EventDetailsPage({ token }: { token: string }) {
               </div>
             </div>
 
+            {/* Host Row */}
+            <div className="flex items-center gap-3.5">
+              <Link
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-sm font-black text-primary transition-opacity hover:opacity-75"
+                href={`/profile/${event.creator.userId}`}
+                title="View host profile"
+              >
+                {getInitials(host)}
+              </Link>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-on-surface leading-tight">{host}</p>
+                <p className="text-xs text-on-surface-variant">Main Host</p>
+              </div>
+              <Link
+                aria-label="View host profile"
+                className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-surface-container-high text-on-surface-variant transition-colors hover:bg-surface-container-highest hover:text-on-surface"
+                href={`/profile/${event.creator.userId}`}
+                title="View host profile"
+              >
+                <ArrowUpRight className="h-3.5 w-3.5" />
+              </Link>
+            </div>
+
             {/* Capacity / Guest Count Row */}
             <div className="flex items-start gap-3.5">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/[0.06] text-on-surface-variant">
@@ -425,9 +448,9 @@ export function EventDetailsPage({ token }: { token: string }) {
                   </p>
                 </div>
                 <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-surface-container-highest">
-                  <div 
-                    className="h-full rounded-full bg-primary transition-all duration-500" 
-                    style={{ width: `${capacityPercent}%` }} 
+                  <div
+                    className="h-full rounded-full bg-primary transition-all duration-500"
+                    style={{ width: `${capacityPercent}%` }}
                   />
                 </div>
               </div>
@@ -445,40 +468,37 @@ export function EventDetailsPage({ token }: { token: string }) {
           </section>
 
           {/* Approved Guests Section */}
-          <section className="space-y-4">
-            <h2 className="flex items-center gap-2.5 font-headline text-xl font-bold tracking-tight text-on-surface">
-              <span className="h-5 w-1 rounded-full bg-tertiary" />
-              <span>
-                Approved Participants <span className="text-on-surface-variant font-normal">({confirmedMembers.length})</span>
-              </span>
-            </h2>
+          {(approvedQuery.isLoading || confirmedMembers.length > 0) && (
+            <section className="space-y-3 rounded-3xl bg-surface-container/30 border border-white/[0.03] p-5">
+              <p className="text-xs font-bold uppercase tracking-wider text-on-surface-variant/70">
+                Approved Participants <span className="text-on-surface-variant/50 font-normal normal-case">({confirmedMembers.length})</span>
+              </p>
 
-            {approvedQuery.isLoading ? (
-              <div className="h-32 animate-pulse rounded-2xl bg-surface-container" />
-            ) : confirmedMembers.length ? (
-              <div className="space-y-2">
-                {confirmedMembers.map((participant) => {
-                  const participantId = participant.participantId ?? participant.userId;
-                  const isSavingThisParticipant =
-                    participantDecisionMutation.isPending && participantDecisionMutation.variables?.participantId === participantId;
+              {approvedQuery.isLoading ? (
+                <div className="h-32 animate-pulse rounded-2xl bg-surface-container" />
+              ) : (
+                <div className="divide-y divide-white/[0.04]">
+                  {confirmedMembers.map((participant) => {
+                    const participantId = participant.participantId ?? participant.userId;
+                    const isSavingThisParticipant =
+                      participantDecisionMutation.isPending && participantDecisionMutation.variables?.participantId === participantId;
 
-                  return (
-                    <div 
-                      key={`${participant.name}-${participant.role}`}
-                      className="flex items-center justify-between rounded-2xl bg-surface-container/30 border border-white/[0.03] p-3"
-                    >
-                      <div className="flex min-w-0 items-center gap-3">
-                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-xs font-black text-primary">
-                          {getInitials(participant.name)}
+                    return (
+                      <div
+                        key={`${participant.name}-${participant.role}`}
+                        className="flex items-center justify-between py-2.5 first:pt-0 last:pb-0"
+                      >
+                        <div className="flex min-w-0 items-center gap-3">
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-black text-primary">
+                            {getInitials(participant.name)}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="truncate text-xs font-bold text-on-surface">{participant.name}</p>
+                            <p className="text-[0.6rem] text-on-surface-variant">{timeAgo(participant.joinedAt, currentTime)}</p>
+                          </div>
                         </div>
-                        <div className="min-w-0">
-                          <p className="truncate text-xs font-bold text-on-surface">{participant.name}</p>
-                          <p className="text-[0.6rem] text-on-surface-variant">{timeAgo(participant.joinedAt, currentTime)}</p>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-2">
-                        {canModerateApproved && participantId ? (
+
+                        {canModerateApproved && participantId && (
                           <div className="flex gap-1.5">
                             <button
                               className="rounded-xl bg-surface-container-high px-2.5 py-1.5 text-[0.62rem] font-bold uppercase tracking-wider text-on-surface transition-colors hover:bg-surface-container-highest disabled:opacity-60"
@@ -497,31 +517,22 @@ export function EventDetailsPage({ token }: { token: string }) {
                               {isSavingThisParticipant && participantDecisionMutation.variables?.decision === "REJECTED" ? "..." : "Remove"}
                             </button>
                           </div>
-                        ) : (
-                          <span className="rounded-full bg-tertiary/10 px-2.5 py-1 text-[0.58rem] font-bold uppercase tracking-wider text-tertiary">
-                            Guest
-                          </span>
                         )}
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="rounded-2xl bg-surface-container/30 border border-white/[0.03] p-4 text-xs text-on-surface-variant text-center">No approved members yet.</div>
-            )}
-          </section>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
+          )}
 
           {/* Waiting List Section */}
-          {!isPastEvent && (
-            <section className="space-y-4">
+          {!isPastEvent && (pendingQuery.isLoading || pendingParticipants.length > 0) && (
+            <section className="space-y-3 rounded-3xl bg-surface-container/30 border border-white/[0.03] p-5">
               <div className="flex items-center justify-between gap-4">
-                <h2 className="flex items-center gap-2.5 font-headline text-xl font-bold tracking-tight text-on-surface">
-                  <span className="h-5 w-1 rounded-full bg-primary" />
-                  <span>
-                    Waiting List <span className="text-primary font-normal">({pendingParticipants.length})</span>
-                  </span>
-                </h2>
+                <p className="text-xs font-bold uppercase tracking-wider text-on-surface-variant/70">
+                  Waiting List <span className="text-on-surface-variant/50 font-normal normal-case">({pendingParticipants.length})</span>
+                </p>
                 {canModeratePending && pendingParticipants.length ? (
                   <span className="text-[0.65rem] font-bold uppercase tracking-wider text-primary cursor-pointer hover:underline">Approve All</span>
                 ) : null}
@@ -529,20 +540,20 @@ export function EventDetailsPage({ token }: { token: string }) {
 
               {pendingQuery.isLoading ? (
                 <div className="h-32 animate-pulse rounded-2xl bg-surface-container" />
-              ) : pendingParticipants.length ? (
-                <div className="space-y-2">
+              ) : (
+                <div className="divide-y divide-white/[0.04]">
                   {pendingParticipants.map((participant) => {
                     const participantId = participant.participantId ?? participant.userId;
                     const isSavingThisParticipant =
                       participantDecisionMutation.isPending && participantDecisionMutation.variables?.participantId === participantId;
 
                     return (
-                      <article
-                        className="flex items-center justify-between rounded-2xl bg-surface-container/50 border border-white/[0.04] p-3.5"
+                      <div
+                        className="flex items-center justify-between py-2.5 first:pt-0 last:pb-0"
                         key={`${participant.name}-${participant.role}`}
                       >
                         <div className="flex min-w-0 items-center gap-3">
-                          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
                             {getInitials(participant.name)}
                           </div>
                           <div className="min-w-0">
@@ -550,7 +561,7 @@ export function EventDetailsPage({ token }: { token: string }) {
                             <p className="text-[0.6rem] text-on-surface-variant">Wants to join</p>
                           </div>
                         </div>
-                        {canModeratePending && participantId ? (
+                        {canModeratePending && participantId && (
                           <div className="flex gap-1.5">
                             <button
                               className="rounded-xl bg-primary px-3 py-1.5 text-[0.68rem] font-bold text-[#480d00] transition-colors hover:brightness-115 disabled:opacity-60"
@@ -577,17 +588,11 @@ export function EventDetailsPage({ token }: { token: string }) {
                               {isSavingThisParticipant && participantDecisionMutation.variables?.decision === "REJECTED" ? "..." : "Reject"}
                             </button>
                           </div>
-                        ) : (
-                          <span className="rounded-full bg-surface-container-high px-2.5 py-1 text-[0.58rem] font-bold uppercase tracking-wider text-tertiary">
-                            Pending
-                          </span>
                         )}
-                      </article>
+                      </div>
                     );
                   })}
                 </div>
-              ) : (
-                <div className="rounded-2xl bg-surface-container/30 border border-white/[0.03] p-4 text-xs text-on-surface-variant text-center">No pending requests right now.</div>
               )}
             </section>
           )}
@@ -627,30 +632,10 @@ export function EventDetailsPage({ token }: { token: string }) {
             </button>
           </div>
 
-          {/* Host Card */}
-          <section className="overflow-hidden rounded-3xl bg-surface-container/40 border border-white/[0.04] p-5">
-            <div className="flex items-center gap-4">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-lg font-black text-primary">
-                {getInitials(host)}
-              </div>
-              <div>
-                <p className="text-lg font-black text-on-surface leading-tight">{host}</p>
-                <p className="text-[0.6rem] font-bold uppercase tracking-[0.18em] text-primary mt-1">Main Host</p>
-              </div>
-            </div>
-            <p className="mt-4 text-xs leading-relaxed text-on-surface-variant">Curating social experiences and keeping this gathering intentional.</p>
-            <Link
-              className="mt-4 inline-flex w-full items-center justify-center rounded-2xl bg-surface-container-high px-4 py-3 text-xs font-bold text-on-surface transition-colors hover:bg-surface-container-highest"
-              href={`/profile/${event.creator.userId}`}
-            >
-              View Host Profile
-            </Link>
-          </section>
-
-          {/* Co-Hosts Card */}
-          <section className="rounded-3xl bg-surface-container/40 border border-white/[0.04] p-5">
-            <p className="mb-4 text-xs font-bold uppercase tracking-wider text-on-surface-variant/70">Appointed Co-Hosts</p>
-            {coHosts.length ? (
+          {/* Co-Hosts Card — only shown when co-hosts exist */}
+          {coHosts.length > 0 && (
+            <section className="rounded-3xl bg-surface-container/40 border border-white/[0.04] p-5">
+              <p className="mb-4 text-xs font-bold uppercase tracking-wider text-on-surface-variant/70">Appointed Co-Hosts</p>
               <div className="space-y-2">
                 {coHosts.map((coHost) => (
                   <div className="flex items-center gap-3 rounded-2xl bg-surface-container-high/40 p-2.5" key={coHost.name}>
@@ -673,10 +658,8 @@ export function EventDetailsPage({ token }: { token: string }) {
                   </div>
                 ))}
               </div>
-            ) : (
-              <div className="rounded-2xl bg-surface-container-high/20 p-4 text-xs text-on-surface-variant text-center">No co-host assigned.</div>
-            )}
-          </section>
+            </section>
+          )}
 
           {/* Spot Card (Map) */}
           <section className="rounded-3xl bg-surface-container/40 border border-white/[0.04] p-5 space-y-4">
